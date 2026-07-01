@@ -3,7 +3,7 @@ import './NewsCard.css'
 
 const NewsCard = () => {
     return (
-        <div className='news-card'>NewsCard</div>
+        <div className='card news-card'>Latest News</div>
     )
 }
 

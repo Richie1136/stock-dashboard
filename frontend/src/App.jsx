@@ -6,18 +6,19 @@ import Header from './components/header/Header'
 import MetricsGrid from './components/metricsGrid/MetricsGrid'
 import NewsCard from './components/newsCard/NewsCard'
 import Sidebar from './components/sidebar/Sidebar'
+import { useState } from 'react'
 function App() {
+
+  const [symbol, setSymbol] = useState("")
 
   return (
     <>
-      <section id="center">
-        <div>
-          <Header />
-        </div>
+      <section className="app">
+        <Header setSymbol={setSymbol} />
         <div className='dashboard'>
           <Sidebar />
-          <main>
-            <CompanyCard />
+          <main className='dashboard-main'>
+            <CompanyCard symbol={symbol} />
             <MetricsGrid />
             <ChartCard />
             <NewsCard />

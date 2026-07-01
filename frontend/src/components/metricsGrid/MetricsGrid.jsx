@@ -3,7 +3,7 @@ import './MetricsGrid.css'
 
 const MetricsGrid = () => {
     return (
-        <div className='metrics-grid'>MetricsGrid</div>
+        <div className='card metrics-grid'>Key Metrics</div>
     )
 }
 

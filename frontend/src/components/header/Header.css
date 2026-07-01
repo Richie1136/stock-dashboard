@@ -1,5 +1,8 @@
 .search-bar-container {
     margin-top: 16px;
     display: flex;
-    gap: 8px;
+}
+
+.search-bar-container input {
+    width: 100%;
 }

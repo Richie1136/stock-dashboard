@@ -1,21 +1,27 @@
 import { useState } from "react"
 import './Header.css'
 
-const Header = () => {
+const Header = ({ setSymbol }) => {
 
     const [searchStock, setSearchStock] = useState("")
 
-
-    const handleClear = () => {
+    const handleSearch = () => {
+        if (!searchStock.trim()) return
+        setSymbol(searchStock.trim().toUpperCase())
         setSearchStock("")
     }
 
+    console.log(searchStock)
+
     return (
-        <div>
+        <div className="header">
             <h1>Stock Dashboard</h1>
             <div className='search-bar-container'>
-                <input value={searchStock} placeholder="Search for Stock" onChange={(e) => setSearchStock(e.target.value)} />
-                {searchStock && <button className="clear-search" onClick={handleClear}>X</button>}
+                <input value={searchStock} placeholder="Search for Stock" onChange={(e) => setSearchStock(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter') handleSearch()
+                    }} />
+                {searchStock && <button className="clear-search" onClick={handleSearch}>Search</button>}
             </div>
         </div>
     )

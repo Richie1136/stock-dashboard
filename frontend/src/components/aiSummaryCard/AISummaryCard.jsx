@@ -3,7 +3,7 @@ import './AISummaryCard.css'
 
 const AISummaryCard = () => {
     return (
-        <div className='ai-summary-card'>AISummaryCard</div>
+        <div className='card ai-summary-card'>AI Summary</div>
     )
 }
 

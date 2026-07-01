@@ -3,7 +3,7 @@ import './ChartCard.css'
 
 const ChartCard = () => {
     return (
-        <div className='chart-card'>ChartCard</div>
+        <div className='card chart-card'>Price Chart</div>
     )
 }
 
