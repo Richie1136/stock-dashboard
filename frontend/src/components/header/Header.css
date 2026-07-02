@@ -1,8 +1,31 @@
 .search-bar-container {
     margin-top: 16px;
     display: flex;
+    position: relative;
 }
 
 .search-bar-container input {
     width: 100%;
+}
+
+.search-button {
+    cursor: pointer;
+}
+
+.search-button:disabled {
+    cursor: default;
+}
+
+.sugguestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #2f3a46;
+    z-index: 10;
+}
+
+.sugguestion-item {
+    padding: 8px;
+    cursor: pointer;
 }

@@ -1,10 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
-import time
-import unicodedata
 import os
-import json
 import requests
 
 app = Flask(__name__)
@@ -44,6 +41,17 @@ def company(query):
     print(data)
     return jsonify(profile_data)
 
+
+@app.route("/api/search", methods=["GET"])
+def search_companies():
+    headers = {
+        "X-Finnhub-Token": API_KEY
+    }
+    search_term = request.args.get("query")
+    search_url = (f"https://finnhub.io/api/v1/search?q={search_term}")
+    search_response = requests.get(search_url, headers=headers)
+    search_data = search_response.json()
+    return jsonify(search_data)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
