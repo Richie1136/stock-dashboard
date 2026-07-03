@@ -2,6 +2,7 @@
     margin-top: 16px;
     display: flex;
     position: relative;
+    justify-content: center;
 }
 
 .search-bar-container input {
@@ -27,5 +28,27 @@
 
 .sugguestion-item {
     padding: 8px;
+    cursor: pointer;
+}
+
+.search-input-container {
+    position: relative;
+    width: 300px;
+}
+
+.search-input-container input {
+    width: 100%;
+    padding-right: 35px;
+    box-sizing: border-box;
+}
+
+.clear-button {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: white;
     cursor: pointer;
 }
