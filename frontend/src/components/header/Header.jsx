@@ -1,35 +1,46 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import './Header.css'
 
 const Header = ({ setSymbol }) => {
 
     const [searchStock, setSearchStock] = useState("")
-    const [sugguestions, setSugguestions] = useState([])
+    const [suggestions, setSuggestions] = useState([])
+    const inputClickAway = useRef(null)
 
     const handleSearch = () => {
         if (!searchStock?.trim()) return
         setSymbol(searchStock?.trim().toUpperCase())
         setSearchStock("")
-        setSugguestions([])
+        setSuggestions([])
     }
 
     const handleClear = (e) => {
         e.stopPropagation()
         setSearchStock("")
-        setSugguestions([])
+        setSuggestions([])
     }
-    console.log(searchStock)
 
     const handleSugguestionClick = (symbol) => {
         setSymbol(symbol)
         setSearchStock("")
-        setSugguestions([])
+        setSuggestions([])
     }
 
+    useEffect(() => { // Close the suggestions dropdown when the user clicks outside the search container.
+        const handleInputClickAway = (e) => {
+            if (!inputClickAway.current) return;
+
+            if (!inputClickAway.current.contains(e.target)) {
+                setSuggestions([])
+            }
+        }
+        document.addEventListener('click', handleInputClickAway)
+        return () => document.removeEventListener('click', handleInputClickAway)
+    }, [])
 
     useEffect(() => {
         if (!searchStock.trim) {
-            setSugguestions([])
+            setSuggestions([])
             return
         }
         const getTypedStock = async () => {
@@ -39,7 +50,7 @@ const Header = ({ setSymbol }) => {
                 const useOnlyStock = data?.result?.filter((stock) => {
                     return stock.type === "Common Stock" && !stock.displaySymbol.includes(".")
                 })
-                setSugguestions(useOnlyStock)
+                setSuggestions(useOnlyStock)
             } catch (error) {
                 console.log(error)
                 console.error("Error fetching company data:", error)
@@ -52,7 +63,7 @@ const Header = ({ setSymbol }) => {
         <div className="header">
             <h1>Stock Dashboard</h1>
             <div className='search-bar-container'>
-                <div className="search-input-container">
+                <div className="search-input-container" ref={inputClickAway}>
                     <input value={searchStock} placeholder="Search for Stock" onChange={(e) => setSearchStock(e.target.value)}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSearch()
@@ -62,7 +73,7 @@ const Header = ({ setSymbol }) => {
                 </div>
                 <button disabled={!searchStock?.trim()} className="search-button" onClick={handleSearch}>Search</button>
                 <div className="sugguestions">
-                    {sugguestions?.map((stock, index) => {
+                    {suggestions?.map((stock, index) => {
                         const { description, symbol } = stock
                         return (
                             <div className="suggestion-item" style={{ cursor: 'pointer' }} key={`${symbol}-${index}`}
