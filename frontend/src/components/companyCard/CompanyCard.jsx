@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { formatIPOLayout } from '../../helperFunctions/formatIpoLayout'
 import './CompanyCard.css'
 
 const CompanyCard = ({ symbol }) => {
@@ -42,29 +43,6 @@ const CompanyCard = ({ symbol }) => {
     const formatExchanges = {
         'NEW YORK STOCK EXCHANGE, INC.': 'NEW YORK STOCK EXCHANGE',
         'NASDAQ NMS - GLOBAL MARKET': 'NASDAQ'
-    }
-
-    const monthNames = {
-        '01': 'January',
-        '02': 'February',
-        '03': 'March',
-        '04': 'April',
-        '05': 'May',
-        '06': 'June',
-        '07': 'July',
-        '08': 'August',
-        '09': 'September',
-        '10': 'October',
-        '11': 'November',
-        '12': 'December'
-    }
-
-
-    const formatIPOLayout = (ipo) => {
-        const year = ipo.split('-')[0]
-        const month = ipo.split('-')[1]
-        const day = ipo.split('-')[2]
-        return `${monthNames[month]} ${day}, ${year}`
     }
 
 
