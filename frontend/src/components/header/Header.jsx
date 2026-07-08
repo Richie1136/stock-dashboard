@@ -52,7 +52,6 @@ const Header = ({ setSymbol }) => {
                 })
                 setSuggestions(useOnlyStock)
             } catch (error) {
-                console.log(error)
                 console.error("Error fetching company data:", error)
             }
         }

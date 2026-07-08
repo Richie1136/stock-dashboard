@@ -19,7 +19,7 @@ function App() {
           <Sidebar />
           <main className='dashboard-main'>
             <CompanyCard symbol={symbol} />
-            <MetricsGrid />
+            <MetricsGrid symbol={symbol} />
             <ChartCard />
             <NewsCard />
             <AISummaryCard />

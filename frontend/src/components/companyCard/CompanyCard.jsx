@@ -11,14 +11,11 @@ const CompanyCard = ({ symbol }) => {
         try {
             const getCompanyCard = async () => {
                 const response = await fetch(`http://localhost:5001/api/company/${symbol}`)
-                console.log(response)
                 const data = await response.json()
-                console.log(data)
                 setCompany(data)
             }
             getCompanyCard()
         } catch (error) {
-            console.log(error)
             console.error("Error fetching company data:", error)
         }
     }, [symbol])
@@ -41,7 +38,7 @@ const CompanyCard = ({ symbol }) => {
     const { exchange, finnhubIndustry, ipo, logo, marketCapitalization, name, ticker, weburl } = company
 
     const formatExchanges = {
-        'NEW YORK STOCK EXCHANGE, INC.': 'NEW YORK STOCK EXCHANGE',
+        'NEW YORK STOCK EXCHANGE, INC.': 'NYSE',
         'NASDAQ NMS - GLOBAL MARKET': 'NASDAQ'
     }
 
