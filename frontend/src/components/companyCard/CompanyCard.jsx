@@ -35,24 +35,12 @@ const CompanyCard = ({ symbol }) => {
 
     }
 
-    const { exchange, finnhubIndustry, ipo, logo, marketCapitalization, name, ticker, weburl } = company
+    const { exchange, finnhubIndustry, ipo, logo, name, ticker, weburl } = company
 
     const formatExchanges = {
         'NEW YORK STOCK EXCHANGE, INC.': 'NYSE',
         'NASDAQ NMS - GLOBAL MARKET': 'NASDAQ'
     }
-
-
-    const marketCap = (cap) => {
-        if (cap >= 1_000_000) {
-            return `${(cap / 1000000).toFixed(2)}T`
-        } else if (cap >= 1_000) {
-            return `${(cap / 1000).toFixed(2)}B`
-        } else {
-            return `${cap.toFixed(2)}M`
-        }
-    }
-
 
     return (
         <div className='card company-card'>
@@ -63,7 +51,6 @@ const CompanyCard = ({ symbol }) => {
             <p>Industry: {finnhubIndustry}</p>
             <p>Exchange: {formatExchanges[exchange]}</p>
             <p>IPO: {formatIPOLayout(ipo)}</p>
-            <p>Market Capitalization: {marketCap(marketCapitalization)}</p>
             <a href={weburl} target='_blank' rel='noopener noreferrer'>Website</a>
         </div>
     )
