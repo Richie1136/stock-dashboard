@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import './MetricsGrid.css'
+import './KeyMetrics.css'
 
-const MetricsGrid = ({ symbol }) => {
+const KeyMetrics = ({ symbol }) => {
 
     const [companyKeyMetrics, setCompanyKeyMetrics] = useState({})
 
@@ -10,6 +10,7 @@ const MetricsGrid = ({ symbol }) => {
         try {
             const getCompanyKeyMetrics = async () => {
                 const response = await fetch(`http://localhost:5001/api/metrics/${symbol}`)
+                console.log(symbol)
                 const data = await response.json()
                 setCompanyKeyMetrics(data)
             }
@@ -33,10 +34,10 @@ const MetricsGrid = ({ symbol }) => {
     const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM } = metrics
 
     const keyMetricsData = [
-        { label: "Market Capital", value: marketCap(marketCapitalization), prefix: "$" },
+        { label: "Market Cap", value: marketCap(marketCapitalization), prefix: "$" },
+        { label: "P/E Ratio", value: peTTM?.toFixed(2) },
         { label: "52 Week High", value: week52High?.toFixed(2), prefix: "$" },
         { label: "52 Week Low", value: week52Low?.toFixed(2), prefix: "$" },
-        { label: "P/E Ratio", value: peTTM.toFixed(2) }
     ]
 
     return (
@@ -56,4 +57,4 @@ const MetricsGrid = ({ symbol }) => {
     )
 }
 
-export default MetricsGrid
+export default KeyMetrics

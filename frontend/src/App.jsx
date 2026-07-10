@@ -3,7 +3,7 @@ import AISummaryCard from './components/aiSummaryCard/AISummaryCard'
 import ChartCard from './components/chartCard/ChartCard'
 import CompanyCard from './components/companyCard/CompanyCard'
 import Header from './components/header/Header'
-import MetricsGrid from './components/metricsGrid/MetricsGrid'
+import KeyMetrics from './components/keyMetrics/KeyMetrics'
 import NewsCard from './components/newsCard/NewsCard'
 import Sidebar from './components/sidebar/Sidebar'
 import { useState } from 'react'
@@ -19,7 +19,7 @@ function App() {
           <Sidebar />
           <main className='dashboard-main'>
             <CompanyCard symbol={symbol} />
-            <MetricsGrid symbol={symbol} />
+            <KeyMetrics symbol={symbol} />
             <ChartCard />
             <NewsCard />
             <AISummaryCard />

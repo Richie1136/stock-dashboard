@@ -15,7 +15,7 @@ key_metrics_bp = Blueprint("key_metrics", __name__)
 
 @key_metrics_bp.route("/api/metrics/<symbol>", methods=['GET'])
 def key_metrics(symbol):
-    symbol = symbol.upper().strip()
+    symbol = symbol.strip()
     url = (f"https://finnhub.io/api/v1/stock/metric?symbol={symbol}&metric=all")
     headers = {
         "X-Finnhub-Token": API_KEY

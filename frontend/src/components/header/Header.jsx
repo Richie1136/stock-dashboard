@@ -8,8 +8,9 @@ const Header = ({ setSymbol }) => {
     const inputClickAway = useRef(null)
 
     const handleSearch = () => {
+        console.log("Handle search")
         if (!searchStock?.trim()) return
-        setSymbol(searchStock?.trim().toUpperCase())
+        setSymbol(searchStock?.trim())
         setSearchStock("")
         setSuggestions([])
     }
@@ -20,7 +21,7 @@ const Header = ({ setSymbol }) => {
         setSuggestions([])
     }
 
-    const handleSugguestionClick = (symbol) => {
+    const handleSuggestionClick = (symbol) => {
         setSymbol(symbol)
         setSearchStock("")
         setSuggestions([])
@@ -39,7 +40,8 @@ const Header = ({ setSymbol }) => {
     }, [])
 
     useEffect(() => {
-        if (!searchStock.trim) {
+        let ignore = false
+        if (!searchStock.trim()) {
             setSuggestions([])
             return
         }
@@ -50,12 +52,20 @@ const Header = ({ setSymbol }) => {
                 const useOnlyStock = data?.result?.filter((stock) => {
                     return stock.type === "Common Stock" && !stock.displaySymbol.includes(".")
                 })
-                setSuggestions(useOnlyStock)
+                console.log("About to set suggestions. Current searchStock:", searchStock)
+                console.log(searchStock)
+                console.log(useOnlyStock)
+                if (!ignore) {
+                    setSuggestions(useOnlyStock)
+                }
             } catch (error) {
                 console.error("Error fetching company data:", error)
             }
         }
         getTypedStock()
+        return () => {
+            ignore = true
+        }
     }, [searchStock])
 
     return (
@@ -76,7 +86,7 @@ const Header = ({ setSymbol }) => {
                         const { description, symbol } = stock
                         return (
                             <div className="suggestion-item" style={{ cursor: 'pointer' }} key={`${symbol}-${index}`}
-                                onClick={() => handleSugguestionClick(symbol)}
+                                onClick={() => handleSuggestionClick(symbol)}
                             >
                                 {description} ({symbol})
                             </div>
