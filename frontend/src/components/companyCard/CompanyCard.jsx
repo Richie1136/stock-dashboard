@@ -5,19 +5,42 @@ import './CompanyCard.css'
 const CompanyCard = ({ symbol }) => {
 
     const [company, setCompany] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState("")
 
     useEffect(() => {
         if (!symbol) return
-        try {
-            const getCompanyCard = async () => {
-                const response = await fetch(`http://localhost:5001/api/company/${symbol}`)
+
+
+        // AbortController is a built-in JavaScript API that lets you cancel an asynchronous operation
+        const controller = new AbortController()
+
+        const getCompanyCard = async () => {
+            try {
+                setIsLoading(true)
+                setError("")
+                const response = await fetch(`http://localhost:5001/api/company/${symbol}`,
+                    { signal: controller.signal }
+
+                )
+                if (!response.ok) {
+                    throw new Error(`Request failed with status ${response.status}`)
+                }
                 const data = await response.json()
                 setCompany(data)
+            } catch (error) {
+                if (error.name !== "AbortError") {
+                    console.error(error)
+                    setError("Unable to load company information")
+                    setCompany(null)
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setIsLoading(false)
+                }
             }
-            getCompanyCard()
-        } catch (error) {
-            console.error("Error fetching company data:", error)
         }
+        getCompanyCard()
     }, [symbol])
 
     if (!company) {

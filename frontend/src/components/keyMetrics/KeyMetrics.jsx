@@ -3,24 +3,50 @@ import './KeyMetrics.css'
 
 const KeyMetrics = ({ symbol }) => {
 
-    const [companyKeyMetrics, setCompanyKeyMetrics] = useState({})
+    const [companyKeyMetrics, setCompanyKeyMetrics] = useState(null)
+    const [isLoading, setIsLoading] = useState(false)
+    const [error, setError] = useState("")
 
     useEffect(() => {
         if (!symbol) return
-        try {
-            const getCompanyKeyMetrics = async () => {
-                const response = await fetch(`http://localhost:5001/api/metrics/${symbol}`)
-                console.log(symbol)
+
+        const controller = new AbortController()
+
+        const getCompanyKeyMetrics = async () => {
+            try {
+                setIsLoading(true)
+                setError("")
+                const response = await fetch(`http://localhost:5001/api/metrics/${symbol}`,
+                    { signal: controller.signal }
+                )
+                if (!response.ok) {
+                    throw new Error(`Metrics request failed with status ${response.status}`
+                    )
+                }
                 const data = await response.json()
                 setCompanyKeyMetrics(data)
+            } catch (err) {
+                if (err.name !== "AbortError") {
+                    console.error(err)
+                    setError("Unable to load company metrics")
+                    setCompanyKeyMetrics(false)
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setIsLoading(false)
+                }
             }
-            getCompanyKeyMetrics()
-        } catch (err) {
-            console.log(err)
+        }
+        getCompanyKeyMetrics()
+
+        return () => {
+            controller.abort()
         }
     }, [symbol])
 
-    const metrics = companyKeyMetrics.metric ?? {}
+    const metrics = companyKeyMetrics?.metric ?? {}
+
+    console.log(companyKeyMetrics)
 
     const marketCap = (cap) => {
         if (cap >= 1_000_000) {
@@ -39,6 +65,10 @@ const KeyMetrics = ({ symbol }) => {
         { label: "52 Week High", value: week52High?.toFixed(2), prefix: "$" },
         { label: "52 Week Low", value: week52Low?.toFixed(2), prefix: "$" },
     ]
+
+    if (isLoading) {
+        <p>Loading Metrics...</p>
+    }
 
     return (
         <div className='card metrics-grid'>
