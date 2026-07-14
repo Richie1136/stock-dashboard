@@ -46,8 +46,6 @@ const KeyMetrics = ({ symbol }) => {
 
     const metrics = companyKeyMetrics?.metric ?? {}
 
-    console.log(companyKeyMetrics)
-
     const marketCap = (cap) => {
         if (cap >= 1_000_000) {
             return `${(cap / 1000000)?.toFixed(2)}T`
@@ -57,23 +55,19 @@ const KeyMetrics = ({ symbol }) => {
             return `${cap?.toFixed(2)}M`
         }
     }
-    const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM } = metrics
-
+    const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta } = metrics
     console.log(metrics)
 
     const keyMetricsData = [
-        { label: "Market Cap", value: marketCap(marketCapitalization), prefix: "$" },
-        { label: "P/E Ratio", value: peTTM?.toFixed(2) },
-        { label: "Forward P/E", value: forwardPE?.toFixed(2) },
-        { label: "Dividend Yield", value: currentDividendYieldTTM !== null && currentDividendYieldTTM > 0 ? `${currentDividendYieldTTM?.toFixed(2)}%` : 'N/A' },
-        { label: "Earnings Per Share", value: epsTTM?.toFixed(2) },
-        { label: "52 Week High", value: week52High?.toFixed(2), prefix: "$" },
-        { label: "52 Week Low", value: week52Low?.toFixed(2), prefix: "$" },
+        { label: "Market Cap: ", value: marketCap(marketCapitalization), prefix: "$" },
+        { label: "P/E Ratio: ", value: peTTM?.toFixed(2) },
+        { label: "Forward P/E: ", value: forwardPE !== undefined ? forwardPE?.toFixed(2) : 'N/A' },
+        { label: "Dividend Yield: ", value: currentDividendYieldTTM !== null && currentDividendYieldTTM > 0 ? `${currentDividendYieldTTM?.toFixed(2)}%` : 'N/A' },
+        { label: "Beta:", value: beta.toFixed(2) },
+        { label: "Earnings Per Share: ", value: epsTTM?.toFixed(2), prefix: "$" },
+        { label: "52 Week High: ", value: week52High?.toFixed(2), prefix: "$" },
+        { label: "52 Week Low: ", value: week52Low?.toFixed(2), prefix: "$" },
     ]
-
-    console.log(currentDividendYieldTTM)
-
-    console.log(keyMetricsData)
 
     if (isLoading) {
         <p>Loading Metrics...</p>

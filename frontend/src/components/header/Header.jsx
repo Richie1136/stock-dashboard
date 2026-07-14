@@ -9,12 +9,14 @@ const Header = ({ setSymbol }) => {
 
 
     const getStockSuggestions = async (query) => {
+
         try {
             const response = await fetch(`http://localhost:5001/api/search?query=${encodeURIComponent(query)}`)
             if (!response.ok) {
                 throw new Error(`Search failed with status ${response.status}`)
             }
             const data = await response.json()
+
             const useOnlyStock = data?.result?.filter((stock) => {
                 return (
                     stock.type === "Common Stock" && !stock.displaySymbol.includes(".")
@@ -58,10 +60,9 @@ const Header = ({ setSymbol }) => {
         if (!query) return
 
         try {
-            let currentSuggestions = suggestions
-            if (currentSuggestions.length === 0) {
-                currentSuggestions = await getStockSuggestions(query)
-            }
+            // Always fetch results for the exact submitted query.
+            const currentSuggestions = await getStockSuggestions(query)
+
             const normalizeQuery = query.toLowerCase()
 
             const exactSymbolMatch = currentSuggestions.find((stock) => {

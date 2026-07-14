@@ -65,6 +65,8 @@ const CompanyCard = ({ symbol }) => {
         'NASDAQ NMS - GLOBAL MARKET': 'NASDAQ'
     }
 
+    console.log(company)
+
     return (
         <div className='card company-card'>
             <h3>Company Overview</h3>
@@ -74,7 +76,7 @@ const CompanyCard = ({ symbol }) => {
             <p>Industry: {finnhubIndustry}</p>
             <p>Exchange: {formatExchanges[exchange]}</p>
             <p>IPO: {formatIPOLayout(ipo)}</p>
-            <a href={weburl} target='_blank' rel='noopener noreferrer'>Website</a>
+            {weburl !== '' && <a href={weburl} target='_blank' rel='noopener noreferrer'>Website</a>}
         </div>
     )
 }
