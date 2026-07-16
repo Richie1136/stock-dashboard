@@ -5,6 +5,7 @@ const Header = ({ setSymbol }) => {
 
     const [searchStock, setSearchStock] = useState("")
     const [suggestions, setSuggestions] = useState([])
+    const [searchError, setSearchError] = useState("")
     const inputClickAway = useRef(null)
 
 
@@ -77,12 +78,15 @@ const Header = ({ setSymbol }) => {
 
             if (!selectedStock?.symbol) {
                 console.error("No matching stock found")
+                setSearchError(`No Matching Stock Found for ${query}`)
+
                 return
             }
 
             // Resolve the ticker here, one time
 
             setSymbol(selectedStock.symbol.toUpperCase())
+            setSearchError("")
             setSearchStock("")
             setSuggestions([])
         } catch (err) {
@@ -94,6 +98,7 @@ const Header = ({ setSymbol }) => {
         e.stopPropagation()
         setSearchStock("")
         setSuggestions([])
+        setSearchError("")
     }
 
     const handleSuggestionClick = (stock) => {
@@ -115,16 +120,23 @@ const Header = ({ setSymbol }) => {
         return () => document.removeEventListener('click', handleInputClickAway)
     }, [])
 
+
+    const handleInputChange = (e) => {
+        setSearchStock(e.target.value)
+        setSearchError("")
+    }
+
     return (
         <div className="header">
             <h1>Stock Dashboard</h1>
             <div className='search-bar-container'>
                 <div className="search-input-container" ref={inputClickAway}>
-                    <input value={searchStock} placeholder="Search for Stock" onChange={(e) => setSearchStock(e.target.value)}
+                    <input value={searchStock} placeholder="Search for Stock" onChange={handleInputChange}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSearch()
                         }}
                     />
+                    <p>{searchError}</p>
                     <button className="clear-button" onClick={handleClear}>x</button>
                 </div>
                 <button disabled={!searchStock?.trim()} className="search-button" onClick={handleSearch}>Search</button>

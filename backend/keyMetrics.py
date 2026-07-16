@@ -15,7 +15,7 @@ key_metrics_bp = Blueprint("key_metrics", __name__)
 
 @key_metrics_bp.route("/api/metrics/<symbol>", methods=['GET'])
 def key_metrics(symbol):
-    query = symbol.strip().upper()
+    symbol = symbol.strip().upper()
 
     if not symbol:
         return jsonify({"error": "A stock symbol is required"}), 400
@@ -35,10 +35,13 @@ def key_metrics(symbol):
         }), key_metrics_symbol_response.status_code
 
     key_metrics_symbol_data = key_metrics_symbol_response.json()
+    metrics = key_metrics_symbol_data.get("metric", {})
 
-    if not key_metrics_symbol_data:
+    print(metrics.keys())
+
+    if not metrics:
         return jsonify ({
             "error": f"No metrics found for {symbol}"
         }), 404
 
-    return jsonify(key_metrics_symbol_data)
+    return jsonify(metrics)

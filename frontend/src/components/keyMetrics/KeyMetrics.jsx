@@ -44,7 +44,7 @@ const KeyMetrics = ({ symbol }) => {
         }
     }, [symbol])
 
-    const metrics = companyKeyMetrics?.metric ?? {}
+    const metrics = companyKeyMetrics ?? {}
 
     const marketCap = (cap) => {
         if (cap >= 1_000_000) {
@@ -56,15 +56,14 @@ const KeyMetrics = ({ symbol }) => {
         }
     }
     const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta } = metrics
-    console.log(metrics)
 
     const keyMetricsData = [
         { label: "Market Cap: ", value: marketCap(marketCapitalization), prefix: "$" },
-        { label: "P/E Ratio: ", value: peTTM?.toFixed(2) },
+        { label: "P/E Ratio: ", value: peTTM !== undefined ? peTTM?.toFixed(2) : 'N/A' },
         { label: "Forward P/E: ", value: forwardPE !== undefined ? forwardPE?.toFixed(2) : 'N/A' },
         { label: "Dividend Yield: ", value: currentDividendYieldTTM !== null && currentDividendYieldTTM > 0 ? `${currentDividendYieldTTM?.toFixed(2)}%` : 'N/A' },
-        { label: "Beta:", value: beta.toFixed(2) },
-        { label: "Earnings Per Share: ", value: epsTTM?.toFixed(2), prefix: "$" },
+        { label: "Beta:", value: beta?.toFixed(2) },
+        { label: "Earnings Per Share: ", value: epsTTM !== undefined ? epsTTM?.toFixed(2) : 'N/A', prefix: epsTTM && "$" },
         { label: "52 Week High: ", value: week52High?.toFixed(2), prefix: "$" },
         { label: "52 Week Low: ", value: week52Low?.toFixed(2), prefix: "$" },
     ]
