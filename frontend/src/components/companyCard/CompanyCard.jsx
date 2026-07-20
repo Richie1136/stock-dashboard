@@ -65,8 +65,6 @@ const CompanyCard = ({ symbol }) => {
         'NASDAQ NMS - GLOBAL MARKET': 'NASDAQ'
     }
 
-    console.log(company)
-
     return (
         <div className='card company-card'>
             <h3>Company Overview</h3>

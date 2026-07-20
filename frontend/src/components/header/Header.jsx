@@ -8,6 +8,11 @@ const Header = ({ setSymbol }) => {
     const [searchError, setSearchError] = useState("")
     const inputClickAway = useRef(null)
 
+    const stockAliases = {
+        google: "alphabet",
+        facebook: "meta"
+    }
+
 
     const getStockSuggestions = async (query) => {
 
@@ -40,17 +45,24 @@ const Header = ({ setSymbol }) => {
                 return
             }
 
-            const stockSuggestions = await getStockSuggestions(searchStock)
+            const normalizeQuery = query.toLowerCase()
+            const resolvedQuery = stockAliases[normalizeQuery] || normalizeQuery
+
+            const stockSuggestions = await getStockSuggestions(resolvedQuery)
 
             if (!ignore) {
                 setSuggestions(stockSuggestions)
 
             }
         }
-        loadStockSuggestions()
+        const timeoutId = setTimeout(() => {
+            loadStockSuggestions()
+
+        }, 400)
 
         return () => {
             ignore = true
+            clearTimeout(timeoutId)
         }
     }, [searchStock])
 
@@ -61,17 +73,19 @@ const Header = ({ setSymbol }) => {
         if (!query) return
 
         try {
-            // Always fetch results for the exact submitted query.
-            const currentSuggestions = await getStockSuggestions(query)
-
             const normalizeQuery = query.toLowerCase()
+
+            const resolvedQuery = stockAliases[normalizeQuery] || normalizeQuery
+            // Always fetch results for the exact submitted query.
+            const currentSuggestions = await getStockSuggestions(resolvedQuery)
+
 
             const exactSymbolMatch = currentSuggestions.find((stock) => {
                 return stock?.symbol?.toLowerCase() === normalizeQuery
             })
 
             const companyNameMatch = currentSuggestions.find((stock) => {
-                return stock?.description?.trim().toLowerCase().startsWith(normalizeQuery)
+                return stock?.description?.trim().toLowerCase().startsWith(resolvedQuery)
             })
 
             const selectedStock = exactSymbolMatch || companyNameMatch

@@ -21,6 +21,11 @@ def search_companies():
     }
     search_term = request.args.get("query")
     search_url = (f"https://finnhub.io/api/v1/search?q={search_term}")
-    search_response = requests.get(search_url, headers=headers)
+    search_response = requests.get(search_url, headers=headers, timeout=10)
+
+    if not search_response.ok:
+        return jsonify({
+            "error": "Finnhub search request failed"
+        }), search_response.status_code   
     search_data = search_response.json()
     return jsonify(search_data)
