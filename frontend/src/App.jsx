@@ -1,6 +1,6 @@
 import './App.css'
 import AISummaryCard from './components/aiSummaryCard/AISummaryCard'
-import ChartCard from './components/chartCard/ChartCard'
+import PriceChart from './components/priceChart/PriceChart'
 import CompanyCard from './components/companyCard/CompanyCard'
 import Header from './components/header/Header'
 import KeyMetrics from './components/keyMetrics/KeyMetrics'
@@ -20,7 +20,7 @@ function App() {
           <main className='dashboard-main'>
             <CompanyCard symbol={symbol} />
             <KeyMetrics symbol={symbol} />
-            <ChartCard />
+            <PriceChart symbol={symbol} />
             <NewsCard />
             <AISummaryCard />
           </main>

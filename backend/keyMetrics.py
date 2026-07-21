@@ -37,8 +37,6 @@ def key_metrics(symbol):
     key_metrics_symbol_data = key_metrics_symbol_response.json()
     metrics = key_metrics_symbol_data.get("metric", {})
 
-    print(metrics.keys())
-
     if not metrics:
         return jsonify ({
             "error": f"No metrics found for {symbol}"

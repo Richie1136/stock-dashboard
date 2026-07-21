@@ -4,6 +4,7 @@ from flask import Flask
 from companyProfile import company_profile_bp
 from searchCompanies import search_companies_bp
 from keyMetrics import key_metrics_bp
+from priceChart import price_chart_bp
 from flask_cors import CORS
 
 
@@ -14,6 +15,7 @@ CORS(app)
 app.register_blueprint(company_profile_bp)
 app.register_blueprint(search_companies_bp)
 app.register_blueprint(key_metrics_bp)
+app.register_blueprint(price_chart_bp)
 
 @app.route("/")
 def home():
