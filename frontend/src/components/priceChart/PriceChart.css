@@ -1,0 +1,9 @@
+.timeline-buttons {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.timeline-buttons>.active {
+    background-color: purple;
+}

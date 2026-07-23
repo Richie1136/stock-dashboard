@@ -46,22 +46,47 @@ const PriceChart = ({ symbol }) => {
         })
     }
 
+    const formatNumbers = (value) => value.toFixed(2)
+
+    const last5Day = chartData.slice(-5)
+    const last10Day = chartData.slice(-10)
     const lastOneMonth = chartData.slice(-22)
+    const lastThreeMonths = chartData.slice(-63)
+
+    const getSelctedTimeline = (selectedTimeline) => {
+        switch (selectedTimeline) {
+            case "10D":
+                return last10Day
+            case "5D":
+                return last5Day
+            case "1M":
+                return lastOneMonth
+            case "3M":
+                return lastThreeMonths
+            default:
+                return chartData
+        }
+    }
 
     return (
         <div className='card chart-card'>
+            <div className='timeline-buttons'>
+                <button className={selectedTimeline === "5D" ? "active" : ''} onClick={() => setSelectedTimeline("5D")}>{"5D"}</button>
+                <button className={selectedTimeline === "10D" ? "active" : ''} onClick={() => setSelectedTimeline("10D")}>{"10D"}</button>
+                <button className={selectedTimeline === "1M" ? "active" : ''} onClick={() => setSelectedTimeline("1M")}>{"1M"}</button>
+                <button className={selectedTimeline === "3M" ? "active" : ''} onClick={() => setSelectedTimeline("3M")}>{"3M"}</button>
+                <button className={selectedTimeline === "MAX" ? "active" : ''} onClick={() => setSelectedTimeline("MAX")}>{"MAX"}</button>
+            </div>
             <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={selectedTimeline === "1M" ? lastOneMonth : chartData} margin={{ right: 25, top: 10, bottom: 20, left: 20 }}>
+                <LineChart data={getSelctedTimeline(selectedTimeline)} margin={{ right: 25, top: 10, bottom: 20, left: 20 }}>
                     <Line dataKey="close" />
-                    <XAxis minTickGap={40} dataKey="date" padding={{ left: 10, right: 20 }} tickMargin={18} tickFormatter={formatDate} />
-                    <YAxis padding={{ top: 10, bottom: 15 }} domain={["dataMin", "dataMax"]} />
+                    <XAxis minTickGap={20} dataKey="date" padding={{ left: 10, right: 20 }} tickMargin={18} tickFormatter={formatDate} />
+                    <YAxis padding={{ top: 10, bottom: 15 }} domain={["dataMin", "dataMax"]} tickFormatter={formatNumbers} />
                     <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, "Close"]}
                         labelFormatter={(date) => `Date ${formatDate(date)}`}
                         labelStyle={{ color: '#000' }}
                     />
                 </LineChart>
-                <button onClick={() => setSelectedTimeline("1M")}>{"1M"}</button>
-                <button onClick={() => setSelectedTimeline("ALL")}>{"ALL"}</button>
             </ResponsiveContainer>
         </div>
     )
