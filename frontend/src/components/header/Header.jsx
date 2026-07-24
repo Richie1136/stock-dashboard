@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import './Header.css'
 
-const Header = ({ setSymbol }) => {
+const Header = ({ setSymbol, setAssetType }) => {
 
     const [searchStock, setSearchStock] = useState("")
     const [suggestions, setSuggestions] = useState([])
@@ -23,12 +23,13 @@ const Header = ({ setSymbol }) => {
             }
             const data = await response.json()
 
-            const useOnlyStock = data?.result?.filter((stock) => {
+            const supportedAssets = data?.result?.filter((stock) => {
+                console.log(stock)
                 return (
-                    stock.type === "Common Stock" && !stock.displaySymbol.includes(".")
+                    (stock.type === "Common Stock" || stock.type === 'ETP') && !stock.displaySymbol.includes(".")
                 )
             }) || []
-            return useOnlyStock
+            return supportedAssets
         } catch (error) {
             console.error("Error fetching company data:", error)
             return []
@@ -89,6 +90,7 @@ const Header = ({ setSymbol }) => {
             })
 
             const selectedStock = exactSymbolMatch || companyNameMatch
+            console.log(selectedStock)
 
             if (!selectedStock?.symbol) {
                 console.error("No matching stock found")
@@ -100,6 +102,8 @@ const Header = ({ setSymbol }) => {
             // Resolve the ticker here, one time
 
             setSymbol(selectedStock.symbol.toUpperCase())
+            setAssetType(selectedStock.type)
+
             setSearchError("")
             setSearchStock("")
             setSuggestions([])
@@ -118,6 +122,7 @@ const Header = ({ setSymbol }) => {
     const handleSuggestionClick = (stock) => {
         if (!stock.symbol) return
         setSymbol(stock.symbol.toUpperCase())
+        setAssetType(stock.type)
         setSearchStock("")
         setSuggestions([])
     }

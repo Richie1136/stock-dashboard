@@ -16,6 +16,7 @@ company_profile_bp = Blueprint("company_profile", __name__)
 @company_profile_bp.route("/api/company/<symbol>", methods=['GET'])
 def company(symbol):
     symbol = symbol.strip().upper()
+    print(symbol)
 
     if not symbol:
         return jsonify({"error": "A stock symbol is required"}), 400
@@ -27,6 +28,7 @@ def company(symbol):
   # Use that symbol to get profile data
     profile_url = (f"https://finnhub.io/api/v1/stock/profile2?symbol={symbol}")
     profile_response = requests.get(profile_url, headers=headers, timeout=10)
+    print(profile_response)
 
     if profile_response.status_code != 200:
         return jsonify({
@@ -36,6 +38,7 @@ def company(symbol):
         }), profile_response.status_code
 
     profile_data = profile_response.json()
+    print(profile_data)
 
     if not profile_data:
         return jsonify({
@@ -43,3 +46,25 @@ def company(symbol):
         })
 
     return jsonify(profile_data)
+
+
+
+VANTAGE_API_KEY= os.getenv('ALPHAVANTAGE_API_KEY').strip()
+
+fund_profile_bp = Blueprint("fund_profile", __name__)
+
+@fund_profile_bp.route("/api/etf/<symbol>", methods=["GET"])
+def fund_profile(symbol):
+    symbol = symbol.strip().upper()
+    search_url = (f"https://www.alphavantage.co/query?function=ETF_PROFILE&symbol={symbol}&apikey={VANTAGE_API_KEY}")
+    search_response = requests.get(search_url, timeout=10)
+
+    profile_data = search_response.json()
+    print(profile_data)
+
+    if not search_response.ok:
+        return jsonify({
+            "error": "Profile data request failed"
+        }), search_response.status_code   
+    search_data = search_response.json()
+    return jsonify(search_data)

@@ -10,16 +10,17 @@ import { useState } from 'react'
 function App() {
 
   const [symbol, setSymbol] = useState("")
+  const [assetType, setAssetType] = useState("Common Stock")
 
   return (
     <>
       <section className="app">
-        <Header setSymbol={setSymbol} />
+        <Header setSymbol={setSymbol} setAssetType={setAssetType} />
         <div className='dashboard'>
           <Sidebar />
           <main className='dashboard-main'>
-            <CompanyCard symbol={symbol} />
-            <KeyMetrics symbol={symbol} />
+            <CompanyCard symbol={symbol} assetType={assetType} />
+            <KeyMetrics symbol={symbol} assetType={assetType} />
             <PriceChart symbol={symbol} />
             <NewsCard />
             <AISummaryCard />

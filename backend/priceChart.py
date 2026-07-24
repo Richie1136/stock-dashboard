@@ -13,6 +13,8 @@ API_KEY= os.getenv('ALPHAVANTAGE_API_KEY').strip()
 
 price_chart_bp = Blueprint("price_chart", __name__)
 
+price_history_cache = {}
+
 
 @price_chart_bp.route("/api/price-history/<symbol>", methods=["GET"])
 def price_chart(symbol):
@@ -20,8 +22,8 @@ def price_chart(symbol):
     search_url = (f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={API_KEY}")
     search_response = requests.get(search_url, timeout=10)
 
-    key_metrics_symbol_data = search_response.json()
-    priceChartDaily = key_metrics_symbol_data.get("Time Series (Daily)", {})
+    if symbol in price_history_cache:
+        return jsonify(price_history_cache[symbol])
 
     if not search_response.ok:
         return jsonify({

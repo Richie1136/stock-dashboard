@@ -8,6 +8,8 @@ const CompanyCard = ({ symbol }) => {
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
 
+    console.log(company)
+
     useEffect(() => {
         if (!symbol) return
 
