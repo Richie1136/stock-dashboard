@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import './Header.css'
 
-const Header = ({ setSymbol, setAssetType }) => {
+const Header = ({ setSymbol, setAssetType, setFundName }) => {
 
     const [searchStock, setSearchStock] = useState("")
     const [suggestions, setSuggestions] = useState([])
@@ -24,7 +24,6 @@ const Header = ({ setSymbol, setAssetType }) => {
             const data = await response.json()
 
             const supportedAssets = data?.result?.filter((stock) => {
-                console.log(stock)
                 return (
                     (stock.type === "Common Stock" || stock.type === 'ETP') && !stock.displaySymbol.includes(".")
                 )
@@ -79,7 +78,7 @@ const Header = ({ setSymbol, setAssetType }) => {
             const resolvedQuery = stockAliases[normalizeQuery] || normalizeQuery
             // Always fetch results for the exact submitted query.
             const currentSuggestions = await getStockSuggestions(resolvedQuery)
-
+            console.log(currentSuggestions)
 
             const exactSymbolMatch = currentSuggestions.find((stock) => {
                 return stock?.symbol?.toLowerCase() === normalizeQuery
@@ -107,6 +106,7 @@ const Header = ({ setSymbol, setAssetType }) => {
             setSearchError("")
             setSearchStock("")
             setSuggestions([])
+            setFundName(selectedStock.description)
         } catch (err) {
             console.error("Unable to search for stock:", err)
         }
@@ -125,6 +125,7 @@ const Header = ({ setSymbol, setAssetType }) => {
         setAssetType(stock.type)
         setSearchStock("")
         setSuggestions([])
+        setFundName(stock.description)
     }
 
     useEffect(() => { // Close the suggestions dropdown when the user clicks outside the search container.

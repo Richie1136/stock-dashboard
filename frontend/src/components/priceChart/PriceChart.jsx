@@ -1,24 +1,35 @@
 import { useState, useEffect } from 'react'
 import './PriceChart.css'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import Loading from '../loading/Loading'
 
 const PriceChart = ({ symbol }) => {
 
     const [companyDailyPrice, setCompanyDailyPrice] = useState(null)
     const [selectedTimeline, setSelectedTimeline] = useState("ALL")
+    const [error, setError] = useState("")
+    const [isLoading, setIsLoading] = useState(false)
 
 
     useEffect(() => {
+        console.log("PriceChart effect:", symbol)
         if (!symbol) return
 
         const fetchPriceCard = async () => {
             try {
+                setError("")
+                setIsLoading(true)
                 const response = await fetch(`http://localhost:5001/api/price-history/${symbol}`)
+                if (!response.ok) {
+                    throw new Error(`Request failed with status ${response.status}`)
+                }
                 const data = await response.json()
                 setCompanyDailyPrice(data)
-                console.log(data)
             } catch (err) {
+                setError("Chart Data Rate limit has been reached")
                 console.error(err)
+            } finally {
+                setIsLoading(false)
             }
         }
         fetchPriceCard()
@@ -34,7 +45,7 @@ const PriceChart = ({ symbol }) => {
     if (!symbol) {
         return <div className='card company-card'>
             <h3>{"Price Chart"}</h3>
-            <p>{"Search for a stock to display company price chart."}</p>
+            <p>{"Search for a stock to display company price chart data."}</p>
         </div>
     }
 
@@ -70,24 +81,29 @@ const PriceChart = ({ symbol }) => {
 
     return (
         <div className='card chart-card'>
-            <div className='timeline-buttons'>
-                <button className={selectedTimeline === "5D" ? "active" : ''} onClick={() => setSelectedTimeline("5D")}>{"5D"}</button>
-                <button className={selectedTimeline === "10D" ? "active" : ''} onClick={() => setSelectedTimeline("10D")}>{"10D"}</button>
-                <button className={selectedTimeline === "1M" ? "active" : ''} onClick={() => setSelectedTimeline("1M")}>{"1M"}</button>
-                <button className={selectedTimeline === "3M" ? "active" : ''} onClick={() => setSelectedTimeline("3M")}>{"3M"}</button>
-                <button className={selectedTimeline === "MAX" ? "active" : ''} onClick={() => setSelectedTimeline("MAX")}>{"MAX"}</button>
-            </div>
-            <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={getSelctedTimeline(selectedTimeline)} margin={{ right: 25, top: 10, bottom: 20, left: 20 }}>
-                    <Line dataKey="close" />
-                    <XAxis minTickGap={20} dataKey="date" padding={{ left: 10, right: 20 }} tickMargin={18} tickFormatter={formatDate} />
-                    <YAxis padding={{ top: 10, bottom: 15 }} domain={["dataMin", "dataMax"]} tickFormatter={formatNumbers} />
-                    <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, "Close"]}
-                        labelFormatter={(date) => `Date ${formatDate(date)}`}
-                        labelStyle={{ color: '#000' }}
-                    />
-                </LineChart>
-            </ResponsiveContainer>
+            {isLoading ? <Loading /> : error ?
+                <h4>{"Chart Data Rate limit has been reached"}</h4> :
+                <>
+                    <div className='timeline-buttons'>
+                        <button className={selectedTimeline === "5D" ? "active" : ''} onClick={() => setSelectedTimeline("5D")}>{"5D"}</button>
+                        <button className={selectedTimeline === "10D" ? "active" : ''} onClick={() => setSelectedTimeline("10D")}>{"10D"}</button>
+                        <button className={selectedTimeline === "1M" ? "active" : ''} onClick={() => setSelectedTimeline("1M")}>{"1M"}</button>
+                        <button className={selectedTimeline === "3M" ? "active" : ''} onClick={() => setSelectedTimeline("3M")}>{"3M"}</button>
+                        <button className={selectedTimeline === "MAX" ? "active" : ''} onClick={() => setSelectedTimeline("MAX")}>{"MAX"}</button>
+                    </div>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={getSelctedTimeline(selectedTimeline)} margin={{ right: 25, top: 10, bottom: 20, left: 20 }}>
+                            <Line dataKey="close" />
+                            <XAxis minTickGap={20} dataKey="date" padding={{ left: 10, right: 20 }} tickMargin={18} tickFormatter={formatDate} />
+                            <YAxis padding={{ top: 10, bottom: 15 }} domain={["dataMin", "dataMax"]} tickFormatter={formatNumbers} />
+                            <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, "Close"]}
+                                labelFormatter={(date) => `Date ${formatDate(date)}`}
+                                labelStyle={{ color: '#000' }}
+                            />
+                        </LineChart>
+                    </ResponsiveContainer>
+                </>
+            }
         </div>
     )
 }

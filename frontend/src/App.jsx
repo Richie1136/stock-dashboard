@@ -11,15 +11,16 @@ function App() {
 
   const [symbol, setSymbol] = useState("")
   const [assetType, setAssetType] = useState("Common Stock")
+  const [fundName, setFundName] = useState("")
 
   return (
     <>
       <section className="app">
-        <Header setSymbol={setSymbol} setAssetType={setAssetType} />
+        <Header setSymbol={setSymbol} setAssetType={setAssetType} setFundName={setFundName} />
         <div className='dashboard'>
           <Sidebar />
           <main className='dashboard-main'>
-            <CompanyCard symbol={symbol} assetType={assetType} />
+            <CompanyCard symbol={symbol} assetType={assetType} fundName={fundName} />
             <KeyMetrics symbol={symbol} assetType={assetType} />
             <PriceChart symbol={symbol} />
             <NewsCard />

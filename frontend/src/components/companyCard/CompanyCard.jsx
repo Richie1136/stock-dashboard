@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
 import { formatIPOLayout } from '../../helperFunctions/formatIpoLayout'
 import './CompanyCard.css'
+import Loading from '../loading/Loading'
+import { formatDate } from '../../helperFunctions/formatDate'
 
-const CompanyCard = ({ symbol }) => {
+const CompanyCard = ({ symbol, assetType, fundName }) => {
 
     const [company, setCompany] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
 
-    console.log(company)
+    console.log(assetType)
 
     useEffect(() => {
         if (!symbol) return
@@ -21,7 +23,7 @@ const CompanyCard = ({ symbol }) => {
             try {
                 setIsLoading(true)
                 setError("")
-                const response = await fetch(`http://localhost:5001/api/company/${symbol}`,
+                const response = await fetch(`http://localhost:5001/api/${assetType !== "Common Stock" ? "etf" : "company"}/${symbol}`,
                     { signal: controller.signal }
 
                 )
@@ -45,6 +47,15 @@ const CompanyCard = ({ symbol }) => {
         getCompanyCard()
     }, [symbol])
 
+
+    if (isLoading) {
+        return (
+            <div className="card company-card">
+                <Loading />
+            </div>
+        )
+    }
+
     if (!company) {
         return <div className='card company-card'>
             <h3>{"Company Overview"}</h3>
@@ -67,16 +78,32 @@ const CompanyCard = ({ symbol }) => {
         'NASDAQ NMS - GLOBAL MARKET': 'NASDAQ'
     }
 
+    // console.log(company)
+    // console.log(fundName)
+    console.log(fundName)
+    console.log(company)
+
     return (
         <div className='card company-card'>
-            <h3>Company Overview</h3>
-            {logo && <img className='company-logo' src={logo} alt={name} />}
-            <h2>{name}</h2>
-            <p><strong>{ticker}</strong></p>
-            <p>Industry: {finnhubIndustry}</p>
-            <p>Exchange: {formatExchanges[exchange]}</p>
-            <p>IPO: {formatIPOLayout(ipo)}</p>
-            {weburl !== '' && <a href={weburl} target='_blank' rel='noopener noreferrer'>Website</a>}
+            {assetType !== "Common Stock" ? (
+                <>
+                    <h3>Fund Overview</h3>
+                    <h2>{fundName}</h2>
+                    <p>{symbol}</p>
+                    <p>{formatIPOLayout(company.inception_date)}</p>
+                </>
+            ) : (
+                <>
+                    <h3>Company Overview</h3>
+                    {logo && <img className='company-logo' src={logo} alt={name} />}
+                    <h2>{name}</h2>
+                    <p><strong>{ticker}</strong></p>
+                    <p>Industry: {finnhubIndustry}</p>
+                    <p>Exchange: {formatExchanges[exchange]}</p>
+                    {/* <p>IPO: {formatIPOLayout(ipo)}</p> */}
+                    {weburl !== '' && <a href={weburl} target='_blank' rel='noopener noreferrer'>Website</a>}
+                </>
+            )}
         </div>
     )
 }

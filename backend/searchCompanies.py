@@ -13,7 +13,6 @@ API_KEY= os.getenv('FINNHUB_API_KEY').strip()
 
 search_companies_bp = Blueprint("search_companies", __name__)
 
-
 @search_companies_bp.route("/api/search", methods=["GET"])
 def search_companies():
     headers = {

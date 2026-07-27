@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './KeyMetrics.css'
+import Loading from '../loading/Loading'
 
 const KeyMetrics = ({ symbol }) => {
 
@@ -81,7 +82,7 @@ const KeyMetrics = ({ symbol }) => {
     return (
         <div className='card metrics-grid'>
             Key Metrics
-            {isLoading && <p>{"Loading Metrics...."}</p>}
+            {isLoading && <Loading />}
             {!symbol && <h4>{"Search for a stock to view key metrics."}</h4>}
             {error && <p>{error}</p>}
             {!error && symbol && keyMetricsData?.map(({ label, value, prefix = "" }) => {
