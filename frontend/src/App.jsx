@@ -6,12 +6,59 @@ import Header from './components/header/Header'
 import KeyMetrics from './components/keyMetrics/KeyMetrics'
 import NewsCard from './components/newsCard/NewsCard'
 import Sidebar from './components/sidebar/Sidebar'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 function App() {
 
   const [symbol, setSymbol] = useState("")
   const [assetType, setAssetType] = useState("Common Stock")
   const [fundName, setFundName] = useState("")
+  const [etfProfile, setEtfProfile] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+
+
+  useEffect(() => {
+    if (!symbol || assetType !== "ETP") {
+      setEtfProfile(null)
+      return
+    }
+
+    const controller = new AbortController()
+
+    const getKeyMetrics = async () => {
+      try {
+        setEtfProfile(null)
+        setIsLoading(true)
+        setError("")
+        if (assetType === "ETP") {
+          const fundResponse = await fetch(`http://localhost:5001/api/etf/${symbol}`,
+            { signal: controller.signal }
+          )
+          if (!fundResponse.ok) {
+            throw new Error(`Fund request failed with status ${fundResponse.status}`)
+          }
+          const fundData = await fundResponse.json()
+
+          setEtfProfile(fundData)
+        }
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error(err)
+          setError("Unable to load company metrics")
+          setEtfProfile(null)
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsLoading(false)
+        }
+      }
+    }
+    getKeyMetrics()
+
+    return () => {
+      controller.abort()
+    }
+  }, [symbol, assetType])
 
   return (
     <>
@@ -20,8 +67,8 @@ function App() {
         <div className='dashboard'>
           <Sidebar />
           <main className='dashboard-main'>
-            <CompanyCard symbol={symbol} assetType={assetType} fundName={fundName} />
-            <KeyMetrics symbol={symbol} assetType={assetType} />
+            <CompanyCard symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} />
+            <KeyMetrics symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
             <PriceChart symbol={symbol} />
             <NewsCard />
             <AISummaryCard />

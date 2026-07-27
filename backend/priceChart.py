@@ -20,13 +20,9 @@ price_history_cache = {}
 def price_chart(symbol):
     symbol = symbol.strip().upper()
     if symbol in price_history_cache:
-        print("TTTTTTCache hit:", symbol)
         return jsonify(price_history_cache[symbol])
     search_url = (f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={API_KEY}")
-    print("Calling Alpha Vantage:", symbol)
     search_response = requests.get(search_url, timeout=10)
-
-    
     
     if not search_response.ok:
         return jsonify({
@@ -40,5 +36,4 @@ def price_chart(symbol):
         }),429
 
     price_history_cache[symbol] = search_data
-    print("Cached symbols:", price_history_cache.keys())
     return jsonify(search_data)

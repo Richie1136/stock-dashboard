@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import './KeyMetrics.css'
 import Loading from '../loading/Loading'
 
-const KeyMetrics = ({ symbol }) => {
+const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
 
     const [companyKeyMetrics, setCompanyKeyMetrics] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
@@ -50,9 +50,10 @@ const KeyMetrics = ({ symbol }) => {
         return () => {
             controller.abort()
         }
-    }, [symbol])
+    }, [symbol, assetType])
 
     const metrics = companyKeyMetrics ?? {}
+    const fundMetrics = etfProfile ?? {}
 
     const marketCap = (cap) => {
         if (cap !== null && cap !== undefined) {
@@ -66,7 +67,26 @@ const KeyMetrics = ({ symbol }) => {
         }
         return "N/A"
     }
-    const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta } = metrics
+
+    const fundNetAssets = (netAsset) => {
+        if (netAsset !== null && netAsset !== undefined) {
+            if (netAsset > 1_000_000_000_000) {
+                return `${(netAsset / 1_000_000_000_000)?.toFixed(2)}T`
+            } else if (netAsset > 1_000_000_000) {
+                return `${(netAsset / 1_000_000_000)?.toFixed(2)}B`
+            } else {
+                return `${netAsset?.toFixed(2)}M`
+            }
+        }
+        return "N/A"
+    }
+
+    const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta } = metrics ?? {}
+    const { dividend_yield, net_assets, net_expense_ratio, holdings } = fundMetrics
+
+    const convertExpenseRatioToNumber = Number(net_expense_ratio) * 100
+    const convertDividendYieldToNumber = Number(dividend_yield) * 100
+    const convertNetAssetToNumber = net_assets !== undefined && net_assets !== null ? Number(net_assets) : "N/A"
 
     const keyMetricsData = [
         { label: "Market Cap: ", value: marketCap(marketCapitalization), prefix: "$" },
@@ -79,13 +99,23 @@ const KeyMetrics = ({ symbol }) => {
         { label: "52 Week Low: ", value: metricFormatter(week52Low), prefix: "$" },
     ]
 
+    const keyFundMetrics = [
+        { label: "Dividend Yield: ", value: convertDividendYieldToNumber > 0.0 ? `${metricFormatter(convertDividendYieldToNumber)}%` : "N/A" },
+        { label: "Beta", value: metricFormatter(beta) },
+        { label: "Net Assets: ", value: net_assets !== null && net_assets !== undefined ? fundNetAssets(convertNetAssetToNumber) : "N/A", prefix: net_assets !== null && net_assets !== undefined ? "$" : "" },
+        { label: "Expense Ratio: ", value: convertExpenseRatioToNumber > 0.0 ? `${metricFormatter(convertExpenseRatioToNumber)}%` : "N/A" },
+        { label: "52 Week High: ", value: metricFormatter(week52High), prefix: "$" },
+        { label: "52 Week Low: ", value: metricFormatter(week52Low), prefix: "$" },
+        { label: "Holdings: ", value: holdings?.length > 0 ? holdings.length : "N/A" }
+    ]
+
     return (
         <div className='card metrics-grid'>
             Key Metrics
             {isLoading && <Loading />}
-            {!symbol && <h4>{"Search for a stock to view key metrics."}</h4>}
+            {!symbol && assetType === 'Common Stock' && <h4>{"Search for a stock or ETF to view key metrics."}</h4>}
             {error && <p>{error}</p>}
-            {!error && symbol && keyMetricsData?.map(({ label, value, prefix = "" }) => {
+            {!error && symbol && assetType === 'Common Stock' ? keyMetricsData?.map(({ label, value, prefix = "" }) => {
                 return (
                     <div key={label}>
                         <h4>
@@ -93,7 +123,17 @@ const KeyMetrics = ({ symbol }) => {
                         </h4>
                     </div>
                 )
-            })}
+            }) : (
+                !error && symbol && keyFundMetrics?.map(({ label, value, prefix = "" }) => {
+                    return (
+                        <div key={label}>
+                            <h4>
+                                {label} {prefix}{value}
+                            </h4>
+                        </div>
+                    )
+                })
+            )}
         </div>
     )
 }

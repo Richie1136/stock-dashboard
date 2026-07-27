@@ -4,13 +4,11 @@ import './CompanyCard.css'
 import Loading from '../loading/Loading'
 import { formatDate } from '../../helperFunctions/formatDate'
 
-const CompanyCard = ({ symbol, assetType, fundName }) => {
+const CompanyCard = ({ symbol, assetType, fundName, etfProfile }) => {
 
     const [company, setCompany] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
-
-    console.log(assetType)
 
     useEffect(() => {
         if (!symbol) return
@@ -48,6 +46,9 @@ const CompanyCard = ({ symbol, assetType, fundName }) => {
     }, [symbol])
 
 
+    console.log(fundName)
+    console.log(error)
+
     if (isLoading) {
         return (
             <div className="card company-card">
@@ -56,14 +57,14 @@ const CompanyCard = ({ symbol, assetType, fundName }) => {
         )
     }
 
-    if (!company) {
+    if (!company && assetType === "Common Stock") {
         return <div className='card company-card'>
             <h3>{"Company Overview"}</h3>
             <p>{"Search for a stock to display company information."}</p>
         </div>
     }
 
-    if (company.error) {
+    if (assetType === 'Common Stock' && company.error) {
         return <div className='card company-card'>
             <h3>{"Company Overview"}</h3>
             <p>{"No company found. Try searching for a different stock."}</p>
@@ -71,17 +72,12 @@ const CompanyCard = ({ symbol, assetType, fundName }) => {
 
     }
 
-    const { exchange, finnhubIndustry, ipo, logo, name, ticker, weburl } = company
+    const { exchange, finnhubIndustry, ipo, logo, name, ticker, weburl } = company ?? {}
 
     const formatExchanges = {
         'NEW YORK STOCK EXCHANGE, INC.': 'NYSE',
         'NASDAQ NMS - GLOBAL MARKET': 'NASDAQ'
     }
-
-    // console.log(company)
-    // console.log(fundName)
-    console.log(fundName)
-    console.log(company)
 
     return (
         <div className='card company-card'>
@@ -89,8 +85,10 @@ const CompanyCard = ({ symbol, assetType, fundName }) => {
                 <>
                     <h3>Fund Overview</h3>
                     <h2>{fundName}</h2>
-                    <p>{symbol}</p>
-                    <p>{formatIPOLayout(company.inception_date)}</p>
+                    <p>Ticker: {symbol}</p>
+                    <p>Inception Date: {formatIPOLayout(company?.inception_date)}</p>
+                    <p>Asset Type: {"ETF"}</p>
+                    <p>Leveraged: {company?.leveraged}</p>
                 </>
             ) : (
                 <>
@@ -100,7 +98,7 @@ const CompanyCard = ({ symbol, assetType, fundName }) => {
                     <p><strong>{ticker}</strong></p>
                     <p>Industry: {finnhubIndustry}</p>
                     <p>Exchange: {formatExchanges[exchange]}</p>
-                    {/* <p>IPO: {formatIPOLayout(ipo)}</p> */}
+                    <p>IPO: {formatIPOLayout(ipo)}</p>
                     {weburl !== '' && <a href={weburl} target='_blank' rel='noopener noreferrer'>Website</a>}
                 </>
             )}
