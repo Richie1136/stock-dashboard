@@ -11,7 +11,7 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile }) => {
     const [error, setError] = useState("")
 
     useEffect(() => {
-        if (!symbol) return
+        if (!symbol || assetType !== "Common Stock") return
 
 
         // AbortController is a built-in JavaScript API that lets you cancel an asynchronous operation
@@ -21,7 +21,7 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile }) => {
             try {
                 setIsLoading(true)
                 setError("")
-                const response = await fetch(`http://localhost:5001/api/${assetType !== "Common Stock" ? "etf" : "company"}/${symbol}`,
+                const response = await fetch(`http://localhost:5001/api/company/${symbol}`,
                     { signal: controller.signal }
 
                 )
@@ -43,7 +43,7 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile }) => {
             }
         }
         getCompanyCard()
-    }, [symbol])
+    }, [symbol, assetType])
 
 
     if (isLoading) {
@@ -61,7 +61,7 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile }) => {
         </div>
     }
 
-    if (assetType === 'Common Stock' && company.error) {
+    if (company?.error && assetType === "Common Stock") {
         return <div className='card company-card'>
             <h3>{"Company Overview"}</h3>
             <p>{"No company found. Try searching for a different stock."}</p>
@@ -83,9 +83,9 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile }) => {
                     <h3>Fund Overview</h3>
                     <h2>{fundName}</h2>
                     <p>Ticker: {symbol}</p>
-                    <p>Inception Date: {formatIPOLayout(company?.inception_date)}</p>
+                    <p>Inception Date: {formatIPOLayout(etfProfile?.inception_date)}</p>
                     <p>Asset Type: {"ETF"}</p>
-                    <p>Leveraged: {company?.leveraged}</p>
+                    <p>Leveraged: {etfProfile?.leveraged}</p>
                 </>
             ) : (
                 <>

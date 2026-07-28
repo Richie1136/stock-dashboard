@@ -68,11 +68,13 @@ def fund_profile(symbol):
 
 
     profile_data = search_response.json()
+    print("Alpha Vantage HTTP status", search_response.status_code)
+    print("ETF response keys:", profile_data.keys())
+    print("ETF response body", profile_data)
 
     if 'net_assets' not in profile_data:
         return jsonify({
             "error": "Company card data rate limit has been hit"
         }),429  
-    print("Profile Data", profile_data)
     profile_cache[symbol] = profile_data
     return jsonify(profile_data)

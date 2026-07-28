@@ -30,6 +30,10 @@ def price_chart(symbol):
         }), search_response.status_code   
 
     search_data = search_response.json()
+    information = search_data.get("Information", "")
+    print("Price response keys:", search_data.keys())
+    print("Daily Limit:", "25 requests per day" in information)
+    print("Per-second limit", "1 request per second" in information)
     if 'Time Series (Daily)' not in search_data:
         return jsonify({
             "error": "Price Chart Daily rate limit has been hit"

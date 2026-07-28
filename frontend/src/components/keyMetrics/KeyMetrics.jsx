@@ -82,31 +82,54 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
     }
 
     const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta } = metrics ?? {}
-    const { dividend_yield, net_assets, net_expense_ratio, holdings } = fundMetrics
+    const { dividend_yield, net_assets, net_expense_ratio, holdings, portfolio_turnover } = fundMetrics ?? {}
 
-    const convertExpenseRatioToNumber = Number(net_expense_ratio) * 100
-    const convertDividendYieldToNumber = Number(dividend_yield) * 100
     const convertNetAssetToNumber = net_assets !== undefined && net_assets !== null ? Number(net_assets) : "N/A"
 
+    const convertkeyMetricsData = (keyMetric) => {
+        if (keyMetric !== undefined && keyMetric !== null) {
+            return Number(keyMetric) * 100
+        }
+        return "N/A"
+    }
+
+    const getPrefix = (metric) => {
+        if (metric !== null && metric !== undefined) {
+            return metric
+        }
+        return ""
+    }
+
+    const getSuffix = (metric) => {
+        if (metric !== null && metric !== undefined) {
+            return metric
+        }
+        return ""
+    }
+
+
+
+
     const keyMetricsData = [
-        { label: "Market Cap: ", value: marketCap(marketCapitalization), prefix: "$" },
+        { label: "Market Cap: ", value: marketCap(marketCapitalization), prefix: getPrefix("$"), suffix: getSuffix("") },
         { label: "P/E Ratio: ", value: metricFormatter(peTTM) },
         { label: "Forward P/E: ", value: metricFormatter(forwardPE) },
-        { label: "Dividend Yield: ", value: currentDividendYieldTTM > 0.0 ? `${metricFormatter(currentDividendYieldTTM)}%` : 'N/A' },
+        { label: "Dividend Yield: ", value: `${metricFormatter(currentDividendYieldTTM)}`, prefix: getPrefix(""), suffix: getSuffix("%") },
         { label: "Beta:", value: metricFormatter(beta) },
-        { label: "Earnings Per Share: ", value: metricFormatter(epsTTM), prefix: epsTTM !== null && epsTTM !== undefined ? "$" : "" },
-        { label: "52 Week High: ", value: metricFormatter(week52High), prefix: "$" },
-        { label: "52 Week Low: ", value: metricFormatter(week52Low), prefix: "$" },
+        { label: "Earnings Per Share: ", value: metricFormatter(epsTTM), prefix: getPrefix("$"), suffix: getSuffix("") },
+        { label: "52 Week High: ", value: metricFormatter(week52High), prefix: getPrefix("$"), suffix: getSuffix("") },
+        { label: "52 Week Low: ", value: metricFormatter(week52Low), prefix: getPrefix("$"), suffix: getSuffix("") },
     ]
 
     const keyFundMetrics = [
-        { label: "Dividend Yield: ", value: convertDividendYieldToNumber > 0.0 ? `${metricFormatter(convertDividendYieldToNumber)}%` : "N/A" },
+        { label: "Dividend Yield: ", value: dividend_yield > 0.0 ? `${metricFormatter(convertkeyMetricsData(dividend_yield))}` : "N/A", prefix: getPrefix(""), suffix: getSuffix("%") },
         { label: "Beta", value: metricFormatter(beta) },
-        { label: "Net Assets: ", value: net_assets !== null && net_assets !== undefined ? fundNetAssets(convertNetAssetToNumber) : "N/A", prefix: net_assets !== null && net_assets !== undefined ? "$" : "" },
-        { label: "Expense Ratio: ", value: convertExpenseRatioToNumber > 0.0 ? `${metricFormatter(convertExpenseRatioToNumber)}%` : "N/A" },
-        { label: "52 Week High: ", value: metricFormatter(week52High), prefix: "$" },
-        { label: "52 Week Low: ", value: metricFormatter(week52Low), prefix: "$" },
-        { label: "Holdings: ", value: holdings?.length > 0 ? holdings.length : "N/A" }
+        { label: "Net Assets: ", value: convertNetAssetToNumber > 0.0 ? fundNetAssets(convertNetAssetToNumber) : "N/A", prefix: getPrefix("$"), suffix: getSuffix("") },
+        { label: "Expense Ratio: ", value: net_expense_ratio > 0.0 ? `${metricFormatter(convertkeyMetricsData(net_expense_ratio))}` : "N/A", prefix: getPrefix(""), suffix: getSuffix("%") },
+        { label: "52 Week High: ", value: metricFormatter(week52High), prefix: getPrefix("$"), suffix: getSuffix("") },
+        { label: "52 Week Low: ", value: metricFormatter(week52Low), prefix: getPrefix("$"), suffix: getSuffix("") },
+        { label: "Holdings: ", value: holdings ? holdings.length.toLocaleString("en-US") : "N/A" },
+        { label: "Portfolio Turnover: ", value: portfolio_turnover > 0.0 ? `${metricFormatter(convertkeyMetricsData(portfolio_turnover))}` : "N/A", prefix: getPrefix(""), suffix: getSuffix("%") }
     ]
 
     return (
@@ -115,20 +138,20 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
             {isLoading && <Loading />}
             {!symbol && assetType === 'Common Stock' && <h4>{"Search for a stock or ETF to view key metrics."}</h4>}
             {error && <p>{error}</p>}
-            {!error && symbol && assetType === 'Common Stock' ? keyMetricsData?.map(({ label, value, prefix = "" }) => {
+            {!error && symbol && assetType === 'Common Stock' ? keyMetricsData?.map(({ label, value, prefix = "", suffix = "" }) => {
                 return (
                     <div key={label}>
                         <h4>
-                            {label} {prefix}{value}
+                            {label} {prefix}{value}{suffix}
                         </h4>
                     </div>
                 )
             }) : (
-                !error && symbol && keyFundMetrics?.map(({ label, value, prefix = "" }) => {
+                !error && symbol && keyFundMetrics?.map(({ label, value, prefix = "", suffix = "" }) => {
                     return (
                         <div key={label}>
                             <h4>
-                                {label} {prefix}{value}
+                                {label} {prefix}{value}{suffix}
                             </h4>
                         </div>
                     )
