@@ -46,9 +46,6 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile }) => {
     }, [symbol])
 
 
-    console.log(fundName)
-    console.log(error)
-
     if (isLoading) {
         return (
             <div className="card company-card">

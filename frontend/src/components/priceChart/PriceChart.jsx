@@ -89,7 +89,7 @@ const PriceChart = ({ symbol }) => {
                         <button className={selectedTimeline === "10D" ? "active" : ''} onClick={() => setSelectedTimeline("10D")}>{"10D"}</button>
                         <button className={selectedTimeline === "1M" ? "active" : ''} onClick={() => setSelectedTimeline("1M")}>{"1M"}</button>
                         <button className={selectedTimeline === "3M" ? "active" : ''} onClick={() => setSelectedTimeline("3M")}>{"3M"}</button>
-                        <button className={selectedTimeline === "MAX" ? "active" : ''} onClick={() => setSelectedTimeline("MAX")}>{"MAX"}</button>
+                        <button className={selectedTimeline === "ALL" ? "active" : ''} onClick={() => setSelectedTimeline("ALL")}>{"ALL"}</button>
                     </div>
                     <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={getSelctedTimeline(selectedTimeline)} margin={{ right: 25, top: 10, bottom: 20, left: 20 }}>

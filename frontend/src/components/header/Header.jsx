@@ -98,8 +98,6 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
                 return
             }
 
-            // Resolve the ticker here, one time
-
             setSymbol(selectedStock.symbol.toUpperCase())
             setAssetType(selectedStock.type)
 
