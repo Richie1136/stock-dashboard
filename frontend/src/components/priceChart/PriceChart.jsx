@@ -3,17 +3,20 @@ import './PriceChart.css'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import Loading from '../loading/Loading'
 
-const PriceChart = ({ symbol }) => {
+const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
 
     const [companyDailyPrice, setCompanyDailyPrice] = useState(null)
     const [selectedTimeline, setSelectedTimeline] = useState("ALL")
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
 
+    console.log(assetType)
+    console.log(finishedEtfSymbol)
+
 
     useEffect(() => {
         console.log("PriceChart effect:", symbol)
-        if (!symbol) return
+        if (!symbol || (assetType === "ETP" && finishedEtfSymbol !== symbol)) return
 
         const fetchPriceCard = async () => {
             try {
@@ -33,7 +36,7 @@ const PriceChart = ({ symbol }) => {
             }
         }
         fetchPriceCard()
-    }, [symbol])
+    }, [symbol, assetType, finishedEtfSymbol])
 
     const dailyPrices = companyDailyPrice?.['Time Series (Daily)'] ?? {}
 
@@ -81,7 +84,7 @@ const PriceChart = ({ symbol }) => {
 
     return (
         <div className='card chart-card'>
-            {isLoading ? <Loading /> : error ?
+            {isLoading || (assetType === "ETP" && finishedEtfSymbol !== symbol) ? <Loading /> : error ?
                 <h4>{"Chart Data Rate limit has been reached"}</h4> :
                 <>
                     <div className='timeline-buttons'>

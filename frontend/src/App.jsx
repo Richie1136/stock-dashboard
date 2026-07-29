@@ -14,33 +14,37 @@ function App() {
   const [fundName, setFundName] = useState("")
   const [etfProfile, setEtfProfile] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [finishedEtfSymbol, setFinishedEtfSymbol] = useState("")
   const [error, setError] = useState("")
 
 
   useEffect(() => {
     if (!symbol || assetType !== "ETP") {
       setEtfProfile(null)
+      setFinishedEtfSymbol("")
       return
     }
 
     const controller = new AbortController()
+    let delayTimer;
 
-    const getKeyMetrics = async () => {
+
+
+    const fetchEtfProfile = async () => {
       try {
         setEtfProfile(null)
         setIsLoading(true)
         setError("")
-        if (assetType === "ETP") {
-          const fundResponse = await fetch(`http://localhost:5001/api/etf/${symbol}`,
-            { signal: controller.signal }
-          )
-          if (!fundResponse.ok) {
-            throw new Error(`Fund request failed with status ${fundResponse.status}`)
-          }
-          const fundData = await fundResponse.json()
-
-          setEtfProfile(fundData)
+        setFinishedEtfSymbol("")
+        const fundResponse = await fetch(`http://localhost:5001/api/etf/${symbol}`,
+          { signal: controller.signal }
+        )
+        if (!fundResponse.ok) {
+          throw new Error(`Fund request failed with status ${fundResponse.status}`)
         }
+        const fundData = await fundResponse.json()
+
+        setEtfProfile(fundData)
       } catch (err) {
         if (err.name !== "AbortError") {
           console.error(err)
@@ -50,13 +54,17 @@ function App() {
       } finally {
         if (!controller.signal.aborted) {
           setIsLoading(false)
+          delayTimer = setTimeout(() => {
+            setFinishedEtfSymbol(symbol)
+          }, 1100);
         }
       }
     }
-    getKeyMetrics()
+    fetchEtfProfile()
 
     return () => {
       controller.abort()
+      clearTimeout(delayTimer)
     }
   }, [symbol, assetType])
 
@@ -69,7 +77,7 @@ function App() {
           <main className='dashboard-main'>
             <CompanyCard symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} />
             <KeyMetrics symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
-            <PriceChart symbol={symbol} />
+            <PriceChart symbol={symbol} assetType={assetType} finishedEtfSymbol={finishedEtfSymbol} />
             <NewsCard />
             <AISummaryCard />
           </main>
