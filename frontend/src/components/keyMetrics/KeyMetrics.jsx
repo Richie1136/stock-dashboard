@@ -9,7 +9,8 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
     const [error, setError] = useState("")
 
     const metricFormatter = (metric) => {
-        if (metric !== null && metric !== undefined) {
+        const convertedMetric = Number(metric);
+        if (Number.isFinite(convertedMetric)) {
             return metric.toFixed(2)
         }
         return "N/A"
@@ -69,7 +70,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
     }
 
     const fundNetAssets = (netAsset) => {
-        if (netAsset !== null && netAsset !== undefined) {
+        if (netAsset !== null && netAsset !== undefined && netAsset !== "N/A") {
             if (netAsset > 1_000_000_000_000) {
                 return `${(netAsset / 1_000_000_000_000)?.toFixed(2)}T`
             } else if (netAsset > 1_000_000_000) {
@@ -107,9 +108,6 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
         return ""
     }
 
-
-
-
     const keyMetricsData = [
         { label: "Market Cap: ", value: marketCap(marketCapitalization), prefix: getPrefix("$", marketCapitalization), suffix: getSuffix("") },
         { label: "P/E Ratio: ", value: metricFormatter(peTTM) },
@@ -121,15 +119,16 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
         { label: "52 Week Low: ", value: metricFormatter(week52Low), prefix: getPrefix("$", week52Low), suffix: getSuffix("") },
     ]
 
+
     const keyFundMetrics = [
-        { label: "Dividend Yield: ", value: dividend_yield >= 0.0 ? `${metricFormatter(convertkeyMetricsData(dividend_yield))}` : "N/A", prefix: getPrefix(""), suffix: getSuffix("%", dividend_yield) },
+        { label: "Dividend Yield: ", value: `${metricFormatter(convertkeyMetricsData(dividend_yield))}`, prefix: getPrefix(""), suffix: getSuffix("%", dividend_yield) },
         { label: "Beta:", value: metricFormatter(beta) },
-        { label: "Net Assets: ", value: convertNetAssetToNumber > 0.0 ? fundNetAssets(convertNetAssetToNumber) : "N/A", prefix: getPrefix("$", convertNetAssetToNumber), suffix: getSuffix("") },
-        { label: "Expense Ratio: ", value: net_expense_ratio > 0.0 ? `${metricFormatter(convertkeyMetricsData(net_expense_ratio))}` : "N/A", prefix: getPrefix(""), suffix: getSuffix("%", net_expense_ratio) },
+        { label: "Net Assets: ", value: fundNetAssets(convertNetAssetToNumber), prefix: getPrefix("$", convertNetAssetToNumber), suffix: getSuffix("") },
+        { label: "Expense Ratio: ", value: `${metricFormatter(convertkeyMetricsData(net_expense_ratio))}`, prefix: getPrefix(""), suffix: getSuffix("%", net_expense_ratio) },
         { label: "52 Week High: ", value: metricFormatter(week52High), prefix: getPrefix("$", week52High), suffix: getSuffix("") },
         { label: "52 Week Low: ", value: metricFormatter(week52Low), prefix: getPrefix("$", week52Low), suffix: getSuffix("") },
         { label: "Holdings: ", value: holdings ? holdings.length.toLocaleString("en-US") : "N/A" },
-        { label: "Portfolio Turnover: ", value: portfolio_turnover > 0.0 ? `${metricFormatter(convertkeyMetricsData(portfolio_turnover))}` : "N/A", prefix: getPrefix(""), suffix: getSuffix("%", portfolio_turnover) }
+        { label: "Portfolio Turnover: ", value: `${metricFormatter(convertkeyMetricsData(portfolio_turnover))}`, prefix: getPrefix(""), suffix: getSuffix("%", portfolio_turnover) }
     ]
 
     return (

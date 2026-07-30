@@ -10,9 +10,6 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
 
-    console.log(assetType)
-    console.log(finishedEtfSymbol)
-
 
     useEffect(() => {
         console.log("PriceChart effect:", symbol)

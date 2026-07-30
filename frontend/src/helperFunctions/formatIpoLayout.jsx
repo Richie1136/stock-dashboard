@@ -3,7 +3,7 @@ import { monthNames } from "../constants/monthNames";
 
 export const formatIPOLayout = (ipo) => {
     if (!ipo) {
-        return <p>{"N/A"}</p>
+        return "N/A"
     }
     const year = ipo.split('-')[0]
     const month = ipo.split('-')[1]
