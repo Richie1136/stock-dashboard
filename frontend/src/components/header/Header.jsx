@@ -78,7 +78,6 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
             const resolvedQuery = stockAliases[normalizeQuery] || normalizeQuery
             // Always fetch results for the exact submitted query.
             const currentSuggestions = await getStockSuggestions(resolvedQuery)
-            console.log(currentSuggestions)
 
             const exactSymbolMatch = currentSuggestions.find((stock) => {
                 return stock?.symbol?.toLowerCase() === normalizeQuery
@@ -89,7 +88,6 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
             })
 
             const selectedStock = exactSymbolMatch || companyNameMatch
-            console.log(selectedStock)
 
             if (!selectedStock?.symbol) {
                 console.error("No matching stock found")

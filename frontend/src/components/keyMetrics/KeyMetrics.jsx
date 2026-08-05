@@ -9,6 +9,9 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
     const [error, setError] = useState("")
 
     const metricFormatter = (metric) => {
+        if (metric === null || metric === undefined || metric === "") {
+            return "N/A"
+        }
         const convertedMetric = Number(metric);
         if (Number.isFinite(convertedMetric)) {
             return metric.toFixed(2)
@@ -133,7 +136,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
 
     return (
         <div className='card metrics-grid'>
-            Key Metrics
+            <h2>Key Metrics</h2>
             {isLoading && <Loading />}
             {!symbol && assetType === 'Common Stock' && <h4>{"Search for a stock or ETF to view key metrics."}</h4>}
             {error && <p>{error}</p>}

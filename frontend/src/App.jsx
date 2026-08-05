@@ -5,8 +5,10 @@ import CompanyCard from './components/companyCard/CompanyCard'
 import Header from './components/header/Header'
 import KeyMetrics from './components/keyMetrics/KeyMetrics'
 import NewsCard from './components/newsCard/NewsCard'
-import Sidebar from './components/sidebar/Sidebar'
 import { useState, useEffect } from 'react'
+import WatchList from './components/watchlist/WatchList'
+import { formatFundName } from './helperFunctions/formatFundName'
+
 function App() {
 
   const [symbol, setSymbol] = useState("")
@@ -16,6 +18,7 @@ function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [finishedEtfSymbol, setFinishedEtfSymbol] = useState("")
   const [error, setError] = useState("")
+  const [fundWatchList, setFundWatchList] = useState([])
 
 
   useEffect(() => {
@@ -68,22 +71,26 @@ function App() {
     }
   }, [symbol, assetType])
 
+  const updateFundWatchList = () => {
+    if (!symbol) return
+
+    setFundWatchList([...Object.values(fundWatchList), { "symbol": symbol, "fund": formatFundName(fundName) }])
+  }
+
   return (
-    <>
-      <section className="app">
-        <Header setSymbol={setSymbol} setAssetType={setAssetType} setFundName={setFundName} />
-        <div className='dashboard'>
-          <Sidebar />
-          <main className='dashboard-main'>
-            <CompanyCard symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} />
-            <KeyMetrics symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
-            <PriceChart symbol={symbol} assetType={assetType} finishedEtfSymbol={finishedEtfSymbol} />
-            <NewsCard />
-            <AISummaryCard />
-          </main>
-        </div>
-      </section>
-    </>
+    <section className="app">
+      <Header setSymbol={setSymbol} setAssetType={setAssetType} setFundName={setFundName} />
+      <div className='dashboard'>
+        <WatchList symbol={symbol} fundName={fundName} fundWatchList={fundWatchList} />
+        <main className='dashboard-main'>
+          <CompanyCard updateWatchList={updateFundWatchList} symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} />
+          <KeyMetrics symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
+          <PriceChart symbol={symbol} assetType={assetType} finishedEtfSymbol={finishedEtfSymbol} />
+          <NewsCard symbol={symbol} />
+          <AISummaryCard />
+        </main>
+      </div>
+    </section>
   )
 }
 

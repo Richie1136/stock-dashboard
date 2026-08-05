@@ -29,7 +29,7 @@ button {
 .dashboard-main {
   flex: 1;
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 24px;
 }
 
@@ -37,7 +37,7 @@ button {
   min-height: 100vh;
   background-color: #0f172a;
   color: white;
-  max-width: 1400px;
+  max-width: 1800px;
   margin: 0 auto;
   padding: 32px;
 }
@@ -58,7 +58,7 @@ button {
 .company-card,
 .chart-card,
 .metrics-grid,
-.news-card {
+.news-list {
   min-height: 220px;
 }
 

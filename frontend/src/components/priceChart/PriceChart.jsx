@@ -12,27 +12,40 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
 
 
     useEffect(() => {
-        console.log("PriceChart effect:", symbol)
         if (!symbol || (assetType === "ETP" && finishedEtfSymbol !== symbol)) return
+
+        const controller = new AbortController()
 
         const fetchPriceCard = async () => {
             try {
                 setError("")
                 setIsLoading(true)
-                const response = await fetch(`http://localhost:5001/api/price-history/${symbol}`)
+                const response = await fetch(`http://localhost:5001/api/price-history/${symbol}`, {
+                    signal: controller.signal
+                })
                 if (!response.ok) {
                     throw new Error(`Request failed with status ${response.status}`)
                 }
                 const data = await response.json()
                 setCompanyDailyPrice(data)
             } catch (err) {
-                setError("Chart Data Rate limit has been reached")
-                console.error(err)
+                if (err.name !== 'AbortError') {
+                    setCompanyDailyPrice(null)
+                    setError("Chart Data Rate limit has been reached")
+                    console.error(err)
+                }
             } finally {
-                setIsLoading(false)
+                if (!controller.signal.aborted) {
+                    setIsLoading(false)
+                }
             }
         }
         fetchPriceCard()
+
+        return () => {
+            controller.abort()
+        }
+
     }, [symbol, assetType, finishedEtfSymbol])
 
     const dailyPrices = companyDailyPrice?.['Time Series (Daily)'] ?? {}

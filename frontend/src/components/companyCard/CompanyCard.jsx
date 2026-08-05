@@ -3,8 +3,9 @@ import { formatIPOLayout } from '../../helperFunctions/formatIpoLayout'
 import './CompanyCard.css'
 import Loading from '../loading/Loading'
 import { formatDate } from '../../helperFunctions/formatDate'
+import { formatFundName } from '../../helperFunctions/formatFundName'
 
-const CompanyCard = ({ symbol, assetType, fundName, etfProfile }) => {
+const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList }) => {
 
     const [company, setCompany] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
@@ -76,12 +77,14 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile }) => {
         'NASDAQ NMS - GLOBAL MARKET': 'NASDAQ'
     }
 
+    const displayFundName = formatFundName(fundName)
+
     return (
         <div className='card company-card'>
             {assetType !== "Common Stock" ? (
                 <>
                     <h3>Fund Overview</h3>
-                    <h2>{fundName}</h2>
+                    <h2>{displayFundName}</h2>
                     <p>Ticker: {symbol}</p>
                     <p>Inception Date: {formatIPOLayout(etfProfile?.inception_date)}</p>
                     <p>Asset Type: {"ETF"}</p>
@@ -99,6 +102,7 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile }) => {
                     {weburl !== '' && <a href={weburl} target='_blank' rel='noopener noreferrer'>Website</a>}
                 </>
             )}
+            <button onClick={updateWatchList}>Add To Watchlist</button>
         </div>
     )
 }

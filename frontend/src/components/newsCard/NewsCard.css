@@ -1,0 +1,17 @@
+.news-list {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.news-card {
+    display: flex;
+    gap: 16px;
+    padding: 20px 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.news-card-content {
+    flex: 1;
+    min-width: 0;
+}
