@@ -72,7 +72,7 @@ function App() {
   }, [symbol, assetType])
 
   const updateFundWatchList = () => {
-    if (!symbol) return
+    if (!symbol || fundWatchList.some((fund) => fund.symbol === symbol)) return
 
     setFundWatchList([...Object.values(fundWatchList), { "symbol": symbol, "fund": formatFundName(fundName) }])
   }

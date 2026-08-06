@@ -6,6 +6,8 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
     const [searchStock, setSearchStock] = useState("")
     const [suggestions, setSuggestions] = useState([])
     const [searchError, setSearchError] = useState("")
+    const [showSuggestions, setShowSuggestions] = useState(false)
+    const [suggestionsLoading, setSuggestionsLoading] = useState(false)
     const inputClickAway = useRef(null)
 
     const stockAliases = {
@@ -14,10 +16,13 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
     }
 
 
-    const getStockSuggestions = async (query) => {
+    const getStockSuggestions = async (query, signal) => {
 
         try {
-            const response = await fetch(`http://localhost:5001/api/search?query=${encodeURIComponent(query)}`)
+            const response = await fetch(`http://localhost:5001/api/search?query=${encodeURIComponent(query)}`,
+                { signal }
+
+            )
             if (!response.ok) {
                 throw new Error(`Search failed with status ${response.status}`)
             }
@@ -30,39 +35,51 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
             }) || []
             return supportedAssets
         } catch (error) {
-            console.error("Error fetching company data:", error)
+            if (error.name !== "AbortError") {
+                console.error("Error fetching company data:", error)
+                setSearchStock("")
+                setSuggestions([])
+            }
             return []
         }
     }
 
     useEffect(() => {
         let ignore = false
-        const loadStockSuggestions = async () => {
-            const query = searchStock.trim()
+        const controller = new AbortController()
+        const signal = controller.signal
+        const query = searchStock.trim()
 
-            if (!query) {
-                setSuggestions([])
-                return
-            }
+        if (!query) {
+            setSuggestionsLoading(false)
+            setSuggestions([])
+            return
+        }
+
+        setSuggestionsLoading(true)
+
+        const loadStockSuggestions = async () => {
 
             const normalizeQuery = query.toLowerCase()
             const resolvedQuery = stockAliases[normalizeQuery] || normalizeQuery
 
-            const stockSuggestions = await getStockSuggestions(resolvedQuery)
-
+            const stockSuggestions = await getStockSuggestions(resolvedQuery, signal)
             if (!ignore) {
                 setSuggestions(stockSuggestions)
+                setShowSuggestions(true)
+                setSuggestionsLoading(false)
 
             }
         }
         const timeoutId = setTimeout(() => {
             loadStockSuggestions()
-
         }, 400)
 
         return () => {
             ignore = true
             clearTimeout(timeoutId)
+            controller.abort()
+
         }
     }, [searchStock])
 
@@ -70,39 +87,42 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
     const handleSearch = async () => {
         const query = searchStock.trim()
 
-        if (!query) return
+        if (!query || suggestionsLoading) return
 
         try {
             const normalizeQuery = query.toLowerCase()
 
             const resolvedQuery = stockAliases[normalizeQuery] || normalizeQuery
             // Always fetch results for the exact submitted query.
-            const currentSuggestions = await getStockSuggestions(resolvedQuery)
+            // let currentSuggestions = suggestions
 
-            const exactSymbolMatch = currentSuggestions.find((stock) => {
-                return stock?.symbol?.toLowerCase() === normalizeQuery
+            if (suggestions.length === 0) {
+                setSearchError(`No matching Stock found for ${query} `)
+                // currentSuggestions = await getStockSuggestions(resolvedQuery, signal)
+            }
+
+            const exactSymbolMatch = suggestions.find((stock) => {
+                return stock?.symbol?.toLowerCase() === resolvedQuery
             })
 
-            const companyNameMatch = currentSuggestions.find((stock) => {
-                return stock?.description?.trim().toLowerCase().startsWith(resolvedQuery)
+            const companyNameMatch = suggestions.find((stock) => {
+                return stock?.description?.trim().toLowerCase().startsWith(normalizeQuery)
             })
 
             const selectedStock = exactSymbolMatch || companyNameMatch
 
             if (!selectedStock?.symbol) {
-                console.error("No matching stock found")
                 setSearchError(`No Matching Stock Found for ${query}`)
-
                 return
             }
 
             setSymbol(selectedStock.symbol.toUpperCase())
             setAssetType(selectedStock.type)
+            setFundName(selectedStock.description)
 
             setSearchError("")
             setSearchStock("")
             setSuggestions([])
-            setFundName(selectedStock.description)
         } catch (err) {
             console.error("Unable to search for stock:", err)
         }
@@ -129,7 +149,7 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
             if (!inputClickAway.current) return;
 
             if (!inputClickAway.current.contains(e.target)) {
-                setSuggestions([])
+                setShowSuggestions(false)
             }
         }
         document.addEventListener('click', handleInputClickAway)
@@ -155,9 +175,9 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
                     <p>{searchError}</p>
                     <button className="clear-button" onClick={handleClear}>x</button>
                 </div>
-                <button disabled={!searchStock?.trim()} className="search-button" onClick={handleSearch}>Search</button>
+                <button disabled={suggestionsLoading || !searchStock?.trim()} className="search-button" onClick={handleSearch}>Search</button>
                 <div className="suggestions">
-                    {suggestions?.map((stock, index) => {
+                    {showSuggestions && suggestions?.map((stock, index) => {
                         const { description, symbol } = stock
                         return (
                             <div className="suggestion-item" style={{ cursor: 'pointer' }} key={`${symbol}-${index}`}
