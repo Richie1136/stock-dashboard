@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { formatIPOLayout } from '../../helperFunctions/formatIpoLayout'
 import './CompanyCard.css'
 import Loading from '../loading/Loading'
-import { formatDate } from '../../helperFunctions/formatDate'
 import { formatFundName } from '../../helperFunctions/formatFundName'
 
 const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList }) => {

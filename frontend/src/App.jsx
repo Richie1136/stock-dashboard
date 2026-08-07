@@ -20,7 +20,7 @@ function App() {
   const [error, setError] = useState("")
   const [fundWatchList, setFundWatchList] = useState([])
 
-
+  // ETF profile data must finish loading before dependent cards request their data.
   useEffect(() => {
     if (!symbol || assetType !== "ETP") {
       setEtfProfile(null)
@@ -57,6 +57,7 @@ function App() {
       } finally {
         if (!controller.signal.aborted) {
           setIsLoading(false)
+          // Keep the loading state visible briefly so cards do not flash between states.
           delayTimer = setTimeout(() => {
             setFinishedEtfSymbol(symbol)
           }, 1100);
@@ -72,6 +73,7 @@ function App() {
   }, [symbol, assetType])
 
   const updateFundWatchList = () => {
+    // Prevent empty and duplicate entries from being added to the watchlist.
     if (!symbol || fundWatchList.some((fund) => fund.symbol === symbol)) return
 
     setFundWatchList([...Object.values(fundWatchList), { "symbol": symbol, "fund": formatFundName(fundName) }])

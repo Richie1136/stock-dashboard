@@ -9,10 +9,38 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [suggestionsLoading, setSuggestionsLoading] = useState(false)
     const inputClickAway = useRef(null)
+    const pendingSearch = useRef(false)
 
+    // Map common former company names to terms supported by the search API.
     const stockAliases = {
         google: "alphabet",
         facebook: "meta"
+    }
+
+    const searchSuggestions = (currentSuggestions, resolvedQuery, query, normalizedQuery) => {
+        // Prefer an exact ticker match, then fall back to the start of a company name.
+        const exactSymbolMatch = currentSuggestions.find((stock) => {
+            return stock?.symbol?.toLowerCase() === resolvedQuery
+        })
+
+        const companyNameMatch = currentSuggestions.find((stock) => {
+            return stock?.description?.trim().toLowerCase().startsWith(normalizedQuery)
+        })
+
+        const selectedStock = exactSymbolMatch || companyNameMatch
+
+        if (!selectedStock?.symbol) {
+            setSearchError(`No Matching Stock Found for ${query}`)
+            return
+        }
+
+        setSymbol(selectedStock.symbol.toUpperCase())
+        setAssetType(selectedStock.type)
+        setFundName(selectedStock.description)
+
+        setSearchError("")
+        setSearchStock("")
+        setSuggestions([])
     }
 
 
@@ -28,9 +56,10 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
             }
             const data = await response.json()
 
+            // The dashboard currently supports US-listed stocks and ETPs only.
             const supportedAssets = data?.result?.filter((stock) => {
                 return (
-                    (stock.type === "Common Stock" || stock.type === 'ETP') && !stock.displaySymbol.includes(".")
+                    (stock.type === "Common Stock" || stock.type === 'ETP')
                 )
             }) || []
             return supportedAssets
@@ -60,8 +89,8 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
 
         const loadStockSuggestions = async () => {
 
-            const normalizeQuery = query.toLowerCase()
-            const resolvedQuery = stockAliases[normalizeQuery] || normalizeQuery
+            const normalizedQuery = query.toLowerCase()
+            const resolvedQuery = stockAliases[normalizedQuery] || normalizedQuery
 
             const stockSuggestions = await getStockSuggestions(resolvedQuery, signal)
             if (!ignore) {
@@ -69,8 +98,14 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
                 setShowSuggestions(true)
                 setSuggestionsLoading(false)
 
+                if (pendingSearch.current) {
+                    pendingSearch.current = false
+                    searchSuggestions(stockSuggestions, normalizedQuery, query, resolvedQuery)
+                }
+
             }
         }
+        // Debounce requests so typing does not trigger a search on every keystroke.
         const timeoutId = setTimeout(() => {
             loadStockSuggestions()
         }, 400)
@@ -84,45 +119,28 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
     }, [searchStock])
 
 
-    const handleSearch = async () => {
+    const handleSearch = () => {
         const query = searchStock.trim()
 
-        if (!query || suggestionsLoading) return
+        if (!query) return
+
+        if (suggestionsLoading) {
+            // Submit once the in-flight suggestion request has populated the results.
+            pendingSearch.current = true
+            return
+        }
 
         try {
-            const normalizeQuery = query.toLowerCase()
+            const normalizedQuery = query.toLowerCase()
 
-            const resolvedQuery = stockAliases[normalizeQuery] || normalizeQuery
+            const resolvedQuery = stockAliases[normalizedQuery] || normalizedQuery
             // Always fetch results for the exact submitted query.
-            // let currentSuggestions = suggestions
 
             if (suggestions.length === 0) {
                 setSearchError(`No matching Stock found for ${query} `)
-                // currentSuggestions = await getStockSuggestions(resolvedQuery, signal)
-            }
-
-            const exactSymbolMatch = suggestions.find((stock) => {
-                return stock?.symbol?.toLowerCase() === resolvedQuery
-            })
-
-            const companyNameMatch = suggestions.find((stock) => {
-                return stock?.description?.trim().toLowerCase().startsWith(normalizeQuery)
-            })
-
-            const selectedStock = exactSymbolMatch || companyNameMatch
-
-            if (!selectedStock?.symbol) {
-                setSearchError(`No Matching Stock Found for ${query}`)
                 return
             }
-
-            setSymbol(selectedStock.symbol.toUpperCase())
-            setAssetType(selectedStock.type)
-            setFundName(selectedStock.description)
-
-            setSearchError("")
-            setSearchStock("")
-            setSuggestions([])
+            searchSuggestions(suggestions, resolvedQuery, query, normalizedQuery)
         } catch (err) {
             console.error("Unable to search for stock:", err)
         }

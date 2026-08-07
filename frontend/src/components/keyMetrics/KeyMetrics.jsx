@@ -60,6 +60,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
     const fundMetrics = etfProfile ?? {}
 
     const marketCap = (cap) => {
+        // The stock metrics API reports market capitalization in millions.
         if (cap !== null && cap !== undefined) {
             if (cap >= 1_000_000) {
                 return `${(cap / 1000000)?.toFixed(2)}T`
@@ -73,6 +74,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
     }
 
     const fundNetAssets = (netAsset) => {
+        // ETF net assets arrive as raw dollars, unlike stock market capitalization.
         if (netAsset !== null && netAsset !== undefined && netAsset !== "N/A") {
             if (netAsset > 1_000_000_000_000) {
                 return `${(netAsset / 1_000_000_000_000)?.toFixed(2)}T`
@@ -87,10 +89,12 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
 
     const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta } = metrics ?? {}
     const { dividend_yield, net_assets, net_expense_ratio, holdings, portfolio_turnover } = fundMetrics ?? {}
+    // console.log(week52High.toFixed(2))
 
     const convertNetAssetToNumber = net_assets !== undefined && net_assets !== null ? Number(net_assets) : "N/A"
 
     const convertkeyMetricsData = (keyMetric) => {
+        // Fund ratios are decimal fractions and are displayed as percentages.
         if (keyMetric !== undefined && keyMetric !== null) {
             return Number(keyMetric) * 100
         }
@@ -111,15 +115,18 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
         return ""
     }
 
+    // Keeping display metadata together lets stocks and funds share one render shape.
     const keyMetricsData = [
         { label: "Market Cap: ", value: marketCap(marketCapitalization), prefix: getPrefix("$", marketCapitalization), suffix: getSuffix("") },
         { label: "P/E Ratio: ", value: metricFormatter(peTTM) },
         { label: "Forward P/E: ", value: metricFormatter(forwardPE) },
         { label: "Dividend Yield: ", value: `${metricFormatter(currentDividendYieldTTM)}`, prefix: getPrefix(""), suffix: getSuffix("%", currentDividendYieldTTM) },
         { label: "Beta:", value: metricFormatter(beta) },
-        { label: "Earnings Per Share: ", value: metricFormatter(epsTTM), prefix: getPrefix("$", epsTTM), suffix: getSuffix("") },
-        { label: "52 Week High: ", value: metricFormatter(week52High), prefix: getPrefix("$", week52High), suffix: getSuffix("") },
-        { label: "52 Week Low: ", value: metricFormatter(week52Low), prefix: getPrefix("$", week52Low), suffix: getSuffix("") },
+        { label: "Earnings Per Share: ", value: epsTTM?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), prefix: getPrefix("$", epsTTM), suffix: getSuffix("") },
+        {
+            label: "52 Week High: ", value: week52High?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), prefix: getPrefix("$", week52High), suffix: getSuffix("")
+        },
+        { label: "52 Week Low: ", value: week52Low?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), prefix: getPrefix("$", week52Low), suffix: getSuffix("") },
     ]
 
 

@@ -12,6 +12,7 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
 
 
     useEffect(() => {
+        // ETF charts wait for the profile request to finish to avoid competing API calls.
         if (!symbol || (assetType === "ETP" && finishedEtfSymbol !== symbol)) return
 
         const controller = new AbortController()
@@ -48,6 +49,7 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
 
     }, [symbol, assetType, finishedEtfSymbol])
 
+    // Normalize the provider's date-keyed response into the array Recharts expects.
     const dailyPrices = companyDailyPrice?.['Time Series (Daily)'] ?? {}
 
     const chartData = Object.entries(dailyPrices).map(([date, prices]) => ({
@@ -72,6 +74,7 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
 
     const formatNumbers = (value) => value.toFixed(2)
 
+    // Approximate month ranges with trading days rather than calendar days.
     const last5Day = chartData.slice(-5)
     const last10Day = chartData.slice(-10)
     const lastOneMonth = chartData.slice(-22)
@@ -92,6 +95,17 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
         }
     }
 
+    const yAxiasCloseValues = (value) => {
+        if (value > 99_000) {
+            const yValue = value / 1_000
+            return `$${yValue.toFixed(1)}K`
+        } else {
+            return value
+        }
+    }
+
+    yAxiasCloseValues()
+
     return (
         <div className='card chart-card'>
             {isLoading || (assetType === "ETP" && finishedEtfSymbol !== symbol) ? <Loading /> : error ?
@@ -108,9 +122,9 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
                         <LineChart data={getSelctedTimeline(selectedTimeline)} margin={{ right: 25, top: 10, bottom: 20, left: 20 }}>
                             <Line dataKey="close" />
                             <XAxis minTickGap={20} dataKey="date" padding={{ left: 10, right: 20 }} tickMargin={18} tickFormatter={formatDate} />
-                            <YAxis padding={{ top: 10, bottom: 15 }} domain={["dataMin", "dataMax"]} tickFormatter={formatNumbers} />
-                            <Tooltip formatter={(value) => [`$${value.toFixed(2)}`, "Close"]}
-                                labelFormatter={(date) => `Date ${formatDate(date)}`}
+                            <YAxis width={90} padding={{ top: 10, bottom: 15 }} domain={["dataMin", "dataMax"]} tickFormatter={yAxiasCloseValues} />
+                            <Tooltip formatter={(value) => [`$${value.toFixed(2)} `, "Close"]}
+                                labelFormatter={(date) => `Date ${formatDate(date)} `}
                                 labelStyle={{ color: '#000' }}
                             />
                         </LineChart>

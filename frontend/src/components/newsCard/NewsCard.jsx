@@ -10,7 +10,8 @@ const NewsCard = ({ symbol }) => {
 
     useEffect(() => {
         if (!symbol) return
-        const controller = new AbortController() // Create an AbortController to cancel this request if the component unmounts or if the effect runs again before the request finishes.
+        // Cancel stale requests when the selected symbol changes or this card unmounts.
+        const controller = new AbortController()
         const getCompanyNews = async () => {
             try {
                 setIsLoading(true)
