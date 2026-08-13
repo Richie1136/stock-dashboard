@@ -1,9 +1,32 @@
 .timeline-buttons {
     display: flex;
     gap: 8px;
-    margin-bottom: 16px;
 }
 
-.timeline-buttons>.active {
-    background-color: purple;
+.timeline-buttons button {
+    padding: 8px 12px;
+    border-radius: 999px;
+    border: 1px solid #4b5563;
+    background-color: #374151;
+    color: white;
+}
+
+.timeline-buttons button.active {
+    background-color: #86198f;
+    border-color: #c084fc;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.chart-header h3 {
+    margin: 0;
+}
+
+.chart-card {
+    padding: 16px;
 }

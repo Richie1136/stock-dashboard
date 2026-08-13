@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import './PriceChart.css'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart } from 'recharts'
 import Loading from '../loading/Loading'
+import { CustomTooltip } from '../../helperFunctions/customTooltip'
 
 const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
 
@@ -96,38 +97,45 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
     }
 
     const yAxiasCloseValues = (value) => {
+        if (value == null) return ""
+
         if (value > 99_000) {
             const yValue = value / 1_000
             return `$${yValue.toFixed(1)}K`
         } else {
-            return value
+            return value.toFixed(2)
         }
     }
-
-    yAxiasCloseValues()
 
     return (
         <div className='card chart-card'>
             {isLoading || (assetType === "ETP" && finishedEtfSymbol !== symbol) ? <Loading /> : error ?
                 <h4>{"Chart Data Rate limit has been reached"}</h4> :
                 <>
-                    <div className='timeline-buttons'>
-                        <button className={selectedTimeline === "5D" ? "active" : ''} onClick={() => setSelectedTimeline("5D")}>{"5D"}</button>
-                        <button className={selectedTimeline === "10D" ? "active" : ''} onClick={() => setSelectedTimeline("10D")}>{"10D"}</button>
-                        <button className={selectedTimeline === "1M" ? "active" : ''} onClick={() => setSelectedTimeline("1M")}>{"1M"}</button>
-                        <button className={selectedTimeline === "3M" ? "active" : ''} onClick={() => setSelectedTimeline("3M")}>{"3M"}</button>
-                        <button className={selectedTimeline === "ALL" ? "active" : ''} onClick={() => setSelectedTimeline("ALL")}>{"ALL"}</button>
+                    <div className='chart-header'>
+                        <h3>Price Chart</h3>
+                        <div className='timeline-buttons'>
+                            <button className={selectedTimeline === "5D" ? "active" : ''} onClick={() => setSelectedTimeline("5D")}>{"5D"}</button>
+                            <button className={selectedTimeline === "10D" ? "active" : ''} onClick={() => setSelectedTimeline("10D")}>{"10D"}</button>
+                            <button className={selectedTimeline === "1M" ? "active" : ''} onClick={() => setSelectedTimeline("1M")}>{"1M"}</button>
+                            <button className={selectedTimeline === "3M" ? "active" : ''} onClick={() => setSelectedTimeline("3M")}>{"3M"}</button>
+                            <button className={selectedTimeline === "ALL" ? "active" : ''} onClick={() => setSelectedTimeline("ALL")}>{"ALL"}</button>
+                        </div>
                     </div>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={getSelctedTimeline(selectedTimeline)} margin={{ right: 25, top: 10, bottom: 20, left: 20 }}>
-                            <Line dataKey="close" />
-                            <XAxis minTickGap={20} dataKey="date" padding={{ left: 10, right: 20 }} tickMargin={18} tickFormatter={formatDate} />
-                            <YAxis width={90} padding={{ top: 10, bottom: 15 }} domain={["dataMin", "dataMax"]} tickFormatter={yAxiasCloseValues} />
-                            <Tooltip formatter={(value) => [`$${value.toFixed(2)} `, "Close"]}
-                                labelFormatter={(date) => `Date ${formatDate(date)} `}
-                                labelStyle={{ color: '#000' }}
-                            />
-                        </LineChart>
+                    <ResponsiveContainer width="100%" height={420}>
+                        <AreaChart data={getSelctedTimeline(selectedTimeline)} margin={{ right: 5, top: 5, bottom: 10, left: 0 }}>
+                            <defs>
+                                <linearGradient id='priceGradient' x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor='#60a5fa' stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor='#60a5fa' stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.15} />
+                            <XAxis minTickGap={20} dataKey="date" padding={{ left: 15, right: 20 }} tickMargin={18} tickFormatter={formatDate} />
+                            <YAxis width={75} padding={{ top: 10, bottom: 15 }} domain={["dataMin", "dataMax"]} tickFormatter={yAxiasCloseValues} />
+                            <Tooltip content={<CustomTooltip />} formatDate={formatDate} />
+                            <Area fill="url(#priceGradient)" dot={false} activeDot={{ r: 5 }} strokeWidth={2.5} type="monotone" dataKey="close" stroke='#60a5fa' />
+                        </AreaChart>
                     </ResponsiveContainer>
                 </>
             }

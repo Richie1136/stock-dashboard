@@ -28,9 +28,17 @@ button {
 
 .dashboard-main {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.top-row,
+.bottom-row {
   display: grid;
   grid-template-columns: 3fr 1fr;
   gap: 24px;
+  align-items: start;
 }
 
 .app {

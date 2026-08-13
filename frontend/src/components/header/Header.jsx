@@ -59,7 +59,7 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
             // The dashboard currently supports US-listed stocks and ETPs only.
             const supportedAssets = data?.result?.filter((stock) => {
                 return (
-                    (stock.type === "Common Stock" || stock.type === 'ETP')
+                    (stock.type === "Common Stock" || stock.type === 'ETP') && (!stock.displaySymbol.includes(".") || stock.displaySymbol === "BRK.A")
                 )
             }) || []
             return supportedAssets

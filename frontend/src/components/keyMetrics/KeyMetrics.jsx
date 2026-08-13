@@ -89,7 +89,6 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
 
     const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta } = metrics ?? {}
     const { dividend_yield, net_assets, net_expense_ratio, holdings, portfolio_turnover } = fundMetrics ?? {}
-    // console.log(week52High.toFixed(2))
 
     const convertNetAssetToNumber = net_assets !== undefined && net_assets !== null ? Number(net_assets) : "N/A"
 

@@ -85,10 +85,14 @@ function App() {
       <div className='dashboard'>
         <WatchList symbol={symbol} fundName={fundName} fundWatchList={fundWatchList} />
         <main className='dashboard-main'>
-          <CompanyCard updateWatchList={updateFundWatchList} symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} />
-          <KeyMetrics symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
-          <PriceChart symbol={symbol} assetType={assetType} finishedEtfSymbol={finishedEtfSymbol} />
-          <NewsCard symbol={symbol} />
+          <div className='top-row'>
+            <CompanyCard updateWatchList={updateFundWatchList} symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} />
+            <KeyMetrics symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
+          </div>
+          <div className='bottom-row'>
+            <PriceChart symbol={symbol} assetType={assetType} finishedEtfSymbol={finishedEtfSymbol} />
+            <NewsCard symbol={symbol} />
+          </div>
           <AISummaryCard />
         </main>
       </div>
