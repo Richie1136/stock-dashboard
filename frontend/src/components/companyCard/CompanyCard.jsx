@@ -88,20 +88,29 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList 
                     <p>Inception Date: {formatIPOLayout(etfProfile?.inception_date)}</p>
                     <p>Asset Type: {"ETF"}</p>
                     <p>Leveraged: {etfProfile?.leveraged}</p>
+                    <div className='company-actions'>
+                        <button onClick={updateWatchList}>Add To Watchlist</button>
+                    </div>
                 </>
             ) : (
                 <>
                     <h3>Company Overview</h3>
-                    {logo && <img className='company-logo' src={logo} alt={name} />}
-                    <h2>{name}</h2>
-                    <p><strong>{ticker}</strong></p>
-                    <p>Industry: {finnhubIndustry}</p>
-                    <p>Exchange: {formatExchanges[exchange]}</p>
-                    <p>IPO: {formatIPOLayout(ipo)}</p>
-                    {weburl !== '' && <a href={weburl} target='_blank' rel='noopener noreferrer'>Website</a>}
+                    <div className='company-header'>
+                        {logo && <img className='company-logo' src={logo} alt={name} />}
+                        <div className='company-header-info'>
+                            <h2>{name}</h2>
+                            <p><strong>{ticker}</strong></p>
+                            <p>Industry: {finnhubIndustry}</p>
+                            <p>Exchange: {formatExchanges[exchange]}</p>
+                            <p>IPO: {formatIPOLayout(ipo)}</p>
+                        </div>
+                    </div>
+                    <div className='company-actions'>
+                        {weburl && <a href={weburl} target='_blank' rel='noopener noreferrer'>Website</a>}
+                        <button onClick={updateWatchList}>Add To Watchlist</button>
+                    </div>
                 </>
             )}
-            <button onClick={updateWatchList}>Add To Watchlist</button>
         </div>
     )
 }

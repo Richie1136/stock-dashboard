@@ -4,7 +4,7 @@ import './WatchList.css'
 const WatchList = ({ fundWatchList }) => {
 
     return (
-        <div className='card'>
+        <div className='card watch-list'>
             <h2>Watch List</h2>
             {fundWatchList.length > 5 ? <h2>{"Max Watchlist length hit"}</h2> : (
                 fundWatchList?.map((item) => {
