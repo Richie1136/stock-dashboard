@@ -65,9 +65,9 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
         { label: "Beta: ", value: formatMetrics(beta) },
         { label: "Earnings Per Share: ", value: epsTTM?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), prefix: getSymbol("$", epsTTM) },
         {
-            label: "52 Week High: ", value: formatLargePriceValue(week52High)?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+            label: "52 Week High: ", value: formatLargePriceValue(week52High)
         },
-        { label: "52 Week Low: ", value: formatLargePriceValue(week52Low)?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
+        { label: "52 Week Low: ", value: formatLargePriceValue(week52Low) },
     ]
 
 
