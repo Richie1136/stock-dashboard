@@ -3,6 +3,7 @@ import { formatIPOLayout } from '../../helperFunctions/formatIpoLayout'
 import './CompanyCard.css'
 import Loading from '../loading/Loading'
 import { formatFundName } from '../../helperFunctions/formatFundName'
+import { FaIndustry, FaBuilding, FaCalendarAlt, FaLink } from 'react-icons/fa'
 
 const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList }) => {
 
@@ -99,14 +100,34 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList 
                         {logo && <img className='company-logo' src={logo} alt={name} />}
                         <div className='company-header-info'>
                             <h2>{name}</h2>
-                            <p><strong>{ticker}</strong></p>
-                            <p>Industry: {finnhubIndustry}</p>
-                            <p>Exchange: {formatExchanges[exchange]}</p>
-                            <p>IPO: {formatIPOLayout(ipo)}</p>
+                            <div className='ticker-row'>
+                                <p><strong>{ticker}</strong></p>
+                                <span className='asset-badge'>Common Stock</span>
+                            </div>
+                            <div className='company-details'>
+                                <FaIndustry />
+                                <span className='details-label'>
+                                    Industry:
+                                </span>
+                                <span className='details-value'>{finnhubIndustry}</span>
+                            </div>
+                            <div className='company-details'>
+                                <FaBuilding />
+                                <span className='details-label'>Exchange: </span>
+                                <span className='details-value'>{formatExchanges[exchange]}</span>
+                            </div>
+                            <div className='company-details'>
+                                <FaCalendarAlt />
+                                <span className='details-label'>IPO: </span>
+                                <span className='details-value'>{formatIPOLayout(ipo)}</span>
+                            </div>
                         </div>
                     </div>
                     <div className='company-actions'>
-                        {weburl && <a href={weburl} target='_blank' rel='noopener noreferrer'>Website</a>}
+                        <div className='company-details'>
+                            <FaLink />
+                            {weburl && <a href={weburl} target='_blank' rel='noopener noreferrer'>Website</a>}
+                        </div>
                         <button onClick={updateWatchList}>Add To Watchlist</button>
                     </div>
                 </>

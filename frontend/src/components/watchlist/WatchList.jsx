@@ -1,4 +1,3 @@
-import React from 'react'
 import './WatchList.css'
 
 const WatchList = ({ fundWatchList }) => {

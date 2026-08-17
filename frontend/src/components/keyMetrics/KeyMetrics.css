@@ -1,11 +1,33 @@
-.metrics-grid>div {
-    margin-bottom: 12px;
+.metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 48px;
+    row-gap: 28px;
 }
 
-.metrics-grid>div:last-child {
-    margin-bottom: 0;
+.metric-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform 0.2s ease;
 }
 
-.metrics-grid h4 {
-    margin: 0;
+.metric-item:hover {
+    transform: translateY(-2px);
+}
+
+.metric-label {
+    color: #9ca3af;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.metric-value {
+    color: white;
+    font-size: 26px;
+    font-weight: 700;
+}
+
+.metrics-card h2 {
+    margin: 0 0 28px;
 }

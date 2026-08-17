@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import './PriceChart.css'
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, LineChart } from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import Loading from '../loading/Loading'
-import { CustomTooltip } from '../../helperFunctions/customTooltip'
+import { CustomTooltip } from './customTooltip'
+import { formatLargePriceValue } from '../../helperFunctions/formatLargePriceValue'
 
 const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
 
@@ -73,8 +74,6 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
         })
     }
 
-    const formatNumbers = (value) => value.toFixed(2)
-
     // Approximate month ranges with trading days rather than calendar days.
     const last5Day = chartData.slice(-5)
     const last10Day = chartData.slice(-10)
@@ -94,16 +93,6 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
             default:
                 return chartData
         }
-    }
-
-    const yAxiasCloseValues = (value) => {
-        if (value == null) return ""
-
-        if (value > 99_000) {
-            const yValue = value / 1_000
-            return `$${yValue.toFixed(1)}K`
-        }
-        return `$${value.toFixed(2)}`
     }
 
     return (
@@ -132,7 +121,7 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
                             </defs>
                             <CartesianGrid stroke='#374151' strokeDasharray="3 3" vertical={false} opacity={0.25} />
                             <XAxis minTickGap={20} dataKey="date" padding={{ left: 15, right: 20 }} tickMargin={18} tickFormatter={formatDate} />
-                            <YAxis width={75} padding={{ top: 10, bottom: 15 }} domain={["dataMin", "dataMax"]} tickFormatter={yAxiasCloseValues} />
+                            <YAxis width={75} padding={{ top: 10, bottom: 15 }} domain={["dataMin", "dataMax"]} tickFormatter={formatLargePriceValue} />
                             <Tooltip content={<CustomTooltip />} formatDate={formatDate} />
                             <Area fill="url(#priceGradient)" dot={false} activeDot={{ r: 6, fill: '#ffffff', stroke: '#60a5fa', strokeWidth: 3 }} strokeWidth={2.5} type="monotone" dataKey="close" stroke='#60a5fa' />
                         </AreaChart>

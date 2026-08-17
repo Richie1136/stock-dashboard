@@ -2,22 +2,13 @@ import { useState, useEffect } from 'react'
 import './KeyMetrics.css'
 import Loading from '../loading/Loading'
 
+import { formatLargePriceValue, formatMetrics, formatMarketCap, formatNetAssets, convertDecimalToPercentage, getSymbol } from '../../helperFunctions'
+
 const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
 
     const [companyKeyMetrics, setCompanyKeyMetrics] = useState(null)
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
-
-    const metricFormatter = (metric) => {
-        if (metric === null || metric === undefined || metric === "") {
-            return "N/A"
-        }
-        const convertedMetric = Number(metric);
-        if (Number.isFinite(convertedMetric)) {
-            return metric.toFixed(2)
-        }
-        return "N/A"
-    }
 
     useEffect(() => {
         if (!symbol) return
@@ -59,111 +50,61 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
     const metrics = companyKeyMetrics ?? {}
     const fundMetrics = etfProfile ?? {}
 
-    const marketCap = (cap) => {
-        // The stock metrics API reports market capitalization in millions.
-        if (cap !== null && cap !== undefined) {
-            if (cap >= 1_000_000) {
-                return `${(cap / 1000000)?.toFixed(2)}T`
-            } else if (cap >= 1_000) {
-                return `${(cap / 1000)?.toFixed(2)}B`
-            } else {
-                return `${cap?.toFixed(2)}M`
-            }
-        }
-        return "N/A"
-    }
-
-    const fundNetAssets = (netAsset) => {
-        // ETF net assets arrive as raw dollars, unlike stock market capitalization.
-        if (netAsset !== null && netAsset !== undefined && netAsset !== "N/A") {
-            if (netAsset > 1_000_000_000_000) {
-                return `${(netAsset / 1_000_000_000_000)?.toFixed(2)}T`
-            } else if (netAsset > 1_000_000_000) {
-                return `${(netAsset / 1_000_000_000)?.toFixed(2)}B`
-            } else {
-                return `${(netAsset / 1_000_000)?.toFixed(2)}M`
-            }
-        }
-        return "N/A"
-    }
 
     const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta } = metrics ?? {}
     const { dividend_yield, net_assets, net_expense_ratio, holdings, portfolio_turnover } = fundMetrics ?? {}
 
     const convertNetAssetToNumber = net_assets !== undefined && net_assets !== null ? Number(net_assets) : "N/A"
 
-    const convertkeyMetricsData = (keyMetric) => {
-        // Fund ratios are decimal fractions and are displayed as percentages.
-        if (keyMetric !== undefined && keyMetric !== null) {
-            return Number(keyMetric) * 100
-        }
-        return "N/A"
-    }
-
-    const getPrefix = (prefix, value) => {
-        if (value !== null && value !== undefined && value >= 0.0) {
-            return prefix
-        }
-        return ""
-    }
-
-    const getSuffix = (suffix, value) => {
-        if (value !== null && value !== undefined && value !== "n/a" && value >= 0.0) {
-            return suffix
-        }
-        return ""
-    }
-
     // Keeping display metadata together lets stocks and funds share one render shape.
     const keyMetricsData = [
-        { label: "Market Cap: ", value: marketCap(marketCapitalization), prefix: getPrefix("$", marketCapitalization), suffix: getSuffix("") },
-        { label: "P/E Ratio: ", value: metricFormatter(peTTM) },
-        { label: "Forward P/E: ", value: metricFormatter(forwardPE) },
-        { label: "Dividend Yield: ", value: `${metricFormatter(currentDividendYieldTTM)}`, prefix: getPrefix(""), suffix: getSuffix("%", currentDividendYieldTTM) },
-        { label: "Beta:", value: metricFormatter(beta) },
-        { label: "Earnings Per Share: ", value: epsTTM?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), prefix: getPrefix("$", epsTTM), suffix: getSuffix("") },
+        { label: "Market Cap: ", value: formatMarketCap(marketCapitalization), prefix: getSymbol("$", marketCapitalization) },
+        { label: "P/E Ratio: ", value: formatMetrics(peTTM) },
+        { label: "Forward P/E: ", value: formatMetrics(forwardPE) },
+        { label: "Dividend Yield: ", value: `${formatMetrics(currentDividendYieldTTM)}`, suffix: getSymbol("%", currentDividendYieldTTM) },
+        { label: "Beta: ", value: formatMetrics(beta) },
+        { label: "Earnings Per Share: ", value: epsTTM?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), prefix: getSymbol("$", epsTTM) },
         {
-            label: "52 Week High: ", value: week52High?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), prefix: getPrefix("$", week52High), suffix: getSuffix("")
+            label: "52 Week High: ", value: formatLargePriceValue(week52High)?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
         },
-        { label: "52 Week Low: ", value: week52Low?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), prefix: getPrefix("$", week52Low), suffix: getSuffix("") },
+        { label: "52 Week Low: ", value: formatLargePriceValue(week52Low)?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) },
     ]
 
 
     const keyFundMetrics = [
-        { label: "Dividend Yield: ", value: `${metricFormatter(convertkeyMetricsData(dividend_yield))}`, prefix: getPrefix(""), suffix: getSuffix("%", dividend_yield) },
-        { label: "Beta:", value: metricFormatter(beta) },
-        { label: "Net Assets: ", value: fundNetAssets(convertNetAssetToNumber), prefix: getPrefix("$", convertNetAssetToNumber), suffix: getSuffix("") },
-        { label: "Expense Ratio: ", value: `${metricFormatter(convertkeyMetricsData(net_expense_ratio))}`, prefix: getPrefix(""), suffix: getSuffix("%", net_expense_ratio) },
-        { label: "52 Week High: ", value: metricFormatter(week52High), prefix: getPrefix("$", week52High), suffix: getSuffix("") },
-        { label: "52 Week Low: ", value: metricFormatter(week52Low), prefix: getPrefix("$", week52Low), suffix: getSuffix("") },
+        { label: "Dividend Yield: ", value: `${formatMetrics(convertDecimalToPercentage(dividend_yield))}`, suffix: getSymbol("%", dividend_yield) },
+        { label: "Beta: ", value: formatMetrics(beta) },
+        { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber), prefix: getSymbol("$", convertNetAssetToNumber) },
+        { label: "Expense Ratio: ", value: `${formatMetrics(convertDecimalToPercentage(net_expense_ratio))}`, suffix: getSymbol("%", net_expense_ratio) },
+        { label: "52 Week High: ", value: formatMetrics(week52High), prefix: getSymbol("$", week52High) },
+        { label: "52 Week Low: ", value: formatMetrics(week52Low), prefix: getSymbol("$", week52Low) },
         { label: "Holdings: ", value: holdings ? holdings.length.toLocaleString("en-US") : "N/A" },
-        { label: "Portfolio Turnover: ", value: `${metricFormatter(convertkeyMetricsData(portfolio_turnover))}`, prefix: getPrefix(""), suffix: getSuffix("%", portfolio_turnover) }
+        { label: "Portfolio Turnover: ", value: `${formatMetrics(convertDecimalToPercentage(portfolio_turnover))}`, suffix: getSymbol("%", portfolio_turnover) }
     ]
 
+    const metricsToDisplay = assetType === 'Common Stock' ? keyMetricsData : keyFundMetrics
+
     return (
-        <div className='card metrics-grid'>
+        <div className='card metrics-card'>
             <h2>Key Metrics</h2>
             {isLoading && <Loading />}
             {!symbol && assetType === 'Common Stock' && <h4>{"Search for a stock or ETF to view key metrics."}</h4>}
             {error && <p>{error}</p>}
-            {!error && symbol && assetType === 'Common Stock' ? keyMetricsData?.map(({ label, value, prefix = "", suffix = "" }) => {
-                return (
-                    <div key={label}>
-                        <h4>
-                            {label} {prefix}{value}{suffix}
-                        </h4>
-                    </div>
-                )
-            }) : (
-                !error && symbol && keyFundMetrics?.map(({ label, value, prefix = "", suffix = "" }) => {
-                    return (
-                        <div key={label}>
-                            <h4>
-                                {label} {prefix}{value}{suffix}
-                            </h4>
-                        </div>
-                    )
-                })
+            {!error && symbol && (
+                <div className='metrics-grid'>
+                    {metricsToDisplay?.map(({ label, value, prefix = "", suffix = "" }) => {
+                        return (
+                            <div className='metric-item' key={label}>
+                                <span className='metric-label'>
+                                    {label}
+                                </span>
+                                <span className='metric-value'>
+                                    {prefix}{value}{suffix}
+                                </span>
+                            </div>
+                        )
+                    })}
+                </div>
             )}
         </div>
     )
