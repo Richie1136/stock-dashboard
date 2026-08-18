@@ -1,7 +1,31 @@
-.sidebar {
-    width: 240px;
+.watch-list {
+    flex: 0 0 320px;
 }
 
-.watch-list {
-    flex: 0 0 220px;
+.fund-card {
+    padding: 16px 16px;
+    border-radius: 10px;
+    background-color: #273449;
+    margin-bottom: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.fund-card:hover {
+    background-color: #334155;
+    transform: translateY(-2px);
+}
+
+.fund-name {
+    margin: 0 0 4px;
+    color: #f3f4f6;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.fund-symbol {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 12px;
+    font-weight: 500;
 }

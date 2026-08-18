@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import './Header.css'
 
-const Header = ({ setSymbol, setAssetType, setFundName }) => {
+const Header = ({ selectStock }) => {
 
     const [searchStock, setSearchStock] = useState("")
     const [suggestions, setSuggestions] = useState([])
@@ -17,13 +17,13 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
         facebook: "meta"
     }
 
-    const searchSuggestions = (currentSuggestions, resolvedQuery, query, normalizedQuery) => {
+    const searchSuggestions = (suggestions, resolvedQuery, query, normalizedQuery) => {
         // Prefer an exact ticker match, then fall back to the start of a company name.
-        const exactSymbolMatch = currentSuggestions.find((stock) => {
+        const exactSymbolMatch = suggestions.find((stock) => {
             return stock?.symbol?.toLowerCase() === resolvedQuery
         })
 
-        const companyNameMatch = currentSuggestions.find((stock) => {
+        const companyNameMatch = suggestions.find((stock) => {
             return stock?.description?.trim().toLowerCase().startsWith(normalizedQuery)
         })
 
@@ -33,14 +33,11 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
             setSearchError(`No Matching Stock Found for ${query}`)
             return
         }
-
-        setSymbol(selectedStock.symbol.toUpperCase())
-        setAssetType(selectedStock.type)
-        setFundName(selectedStock.description)
-
+        selectStock(selectedStock)
         setSearchError("")
         setSearchStock("")
         setSuggestions([])
+        setShowSuggestions(false)
     }
 
 
@@ -100,7 +97,7 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
 
                 if (pendingSearch.current) {
                     pendingSearch.current = false
-                    searchSuggestions(stockSuggestions, normalizedQuery, query, resolvedQuery)
+                    searchSuggestions(stockSuggestions, resolvedQuery, query, normalizedQuery)
                 }
 
             }
@@ -151,15 +148,16 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
         setSearchStock("")
         setSuggestions([])
         setSearchError("")
+        setShowSuggestions(false)
     }
 
     const handleSuggestionClick = (stock) => {
         if (!stock.symbol) return
-        setSymbol(stock.symbol.toUpperCase())
-        setAssetType(stock.type)
+        selectStock(stock)
         setSearchStock("")
         setSuggestions([])
-        setFundName(stock.description)
+        setSearchError("")
+        setShowSuggestions(false)
     }
 
     useEffect(() => { // Close the suggestions dropdown when the user clicks outside the search container.
@@ -192,20 +190,25 @@ const Header = ({ setSymbol, setAssetType, setFundName }) => {
                     />
                     <p>{searchError}</p>
                     <button className="clear-button" onClick={handleClear}>x</button>
+                    <div className="suggestions">
+                        {showSuggestions && suggestions?.map((stock, index) => {
+                            const { description, symbol } = stock
+                            return (
+                                <div className="suggestion-item" key={`${symbol}-${index}`}
+                                    onClick={() => handleSuggestionClick(stock)}
+                                >
+                                    <span className="suggestion-name">
+                                        {description}
+                                    </span>
+                                    <span className="suggestion-symbol">
+                                        ({symbol})
+                                    </span>
+                                </div>
+                            )
+                        })}
+                    </div>
                 </div>
                 <button disabled={suggestionsLoading || !searchStock?.trim()} className="search-button" onClick={handleSearch}>Search</button>
-                <div className="suggestions">
-                    {showSuggestions && suggestions?.map((stock, index) => {
-                        const { description, symbol } = stock
-                        return (
-                            <div className="suggestion-item" style={{ cursor: 'pointer' }} key={`${symbol}-${index}`}
-                                onClick={() => handleSuggestionClick(stock)}
-                            >
-                                {description} ({symbol})
-                            </div>
-                        )
-                    })}
-                </div>
             </div>
         </div>
     )

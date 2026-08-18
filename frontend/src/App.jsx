@@ -31,8 +31,6 @@ function App() {
     const controller = new AbortController()
     let delayTimer;
 
-
-
     const fetchEtfProfile = async () => {
       try {
         setEtfProfile(null)
@@ -76,14 +74,20 @@ function App() {
     // Prevent empty and duplicate entries from being added to the watchlist.
     if (!symbol || fundWatchList.some((fund) => fund.symbol === symbol)) return
 
-    setFundWatchList([...Object.values(fundWatchList), { "symbol": symbol, "fund": formatFundName(fundName) }])
+    setFundWatchList([...Object.values(fundWatchList), { "symbol": symbol, "type": assetType, "description": formatFundName(fundName) }])
+  }
+
+  const selectStock = (selectedStock) => {
+    setSymbol(selectedStock.symbol.toUpperCase())
+    setAssetType(selectedStock.type)
+    setFundName(selectedStock.description)
   }
 
   return (
     <section className="app">
-      <Header setSymbol={setSymbol} setAssetType={setAssetType} setFundName={setFundName} />
+      <Header selectStock={selectStock} />
       <div className='dashboard'>
-        <WatchList symbol={symbol} fundName={fundName} fundWatchList={fundWatchList} />
+        <WatchList symbol={symbol} fundName={fundName} fundWatchList={fundWatchList} selectStock={selectStock} />
         <main className='dashboard-main'>
           <div className='top-row'>
             <CompanyCard updateWatchList={updateFundWatchList} symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} />

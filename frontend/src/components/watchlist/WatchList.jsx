@@ -1,4 +1,5 @@
 import './WatchList.css'
+import { formatStockName } from '../../helperFunctions/formatStockName'
 
 const WatchList = ({ fundWatchList }) => {
 
@@ -9,9 +10,9 @@ const WatchList = ({ fundWatchList }) => {
                 fundWatchList?.map((item) => {
                     const { symbol, fund } = item
                     return (
-                        <div key={fund} style={{ marginBottom: '15px' }}>
-                            <p>Symbol: {symbol}</p>
-                            <p>Fund: {fund}</p>
+                        <div className='fund-card' key={symbol} onClick={() => selectStock(item)}>
+                            <p className='fund-name'>{formatStockName(fund)}</p>
+                            <p className='fund-symbol'>{symbol}</p>
                         </div>
                     )
                 })
