@@ -3,7 +3,10 @@
 }
 
 .fund-card {
-    padding: 16px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px;
     border-radius: 10px;
     background-color: #273449;
     margin-bottom: 14px;
@@ -14,6 +17,18 @@
 .fund-card:hover {
     background-color: #334155;
     transform: translateY(-2px);
+}
+
+.fund-card.active {
+    background-color: #334155;
+    border: 1px solid #60a5fa;
+}
+
+.fund-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    /* min-width: 0; */
 }
 
 .fund-name {
@@ -28,4 +43,18 @@
     color: #9ca3af;
     font-size: 12px;
     font-weight: 500;
+}
+
+.remove-button {
+    background-color: transparent;
+    border: none;
+    color: #9ca3af;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s ease;
+}
+
+.remove-button:hover {
+    color: #ef4444;
 }

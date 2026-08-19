@@ -87,7 +87,7 @@ function App() {
     <section className="app">
       <Header selectStock={selectStock} />
       <div className='dashboard'>
-        <WatchList symbol={symbol} fundName={fundName} fundWatchList={fundWatchList} selectStock={selectStock} />
+        <WatchList setFundWatchList={setFundWatchList} symbol={symbol} fundWatchList={fundWatchList} selectStock={selectStock} />
         <main className='dashboard-main'>
           <div className='top-row'>
             <CompanyCard updateWatchList={updateFundWatchList} symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} />
