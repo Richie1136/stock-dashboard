@@ -26,10 +26,11 @@ def price_chart(symbol):
         }), search_response.status_code   
 
     search_data = search_response.json()
-    if 'Time Series (Daily)' not in search_data:
+    if "Time Series (Daily)" not in search_data:
         return jsonify({
-            "error": "Price Chart Daily rate limit has been hit"
-        }),429
+            "error": "Alpha Vantage did not return price history",
+            "details": search_data
+        }), 429
 
     price_history_cache[symbol] = search_data
     return jsonify(search_data)
