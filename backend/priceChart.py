@@ -1,15 +1,11 @@
-from flask import Flask, jsonify, request, Blueprint
-from flask_cors import CORS
+from flask import jsonify, Blueprint
 from dotenv import load_dotenv
 import os
 import requests
 
-app = Flask(__name__)
-CORS(app)
-
 load_dotenv()
 
-API_KEY= os.getenv('ALPHAVANTAGE_API_KEY').strip()
+API_KEY= os.getenv('ALPHAVANTAGE_API_KEY', "").strip()
 
 price_chart_bp = Blueprint("price_chart", __name__)
 
@@ -30,10 +26,6 @@ def price_chart(symbol):
         }), search_response.status_code   
 
     search_data = search_response.json()
-    information = search_data.get("Information", "")
-    print("Price response keys:", search_data.keys())
-    print("Daily Limit:", "25 requests per day" in information)
-    print("Per-second limit", "1 request per second" in information)
     if 'Time Series (Daily)' not in search_data:
         return jsonify({
             "error": "Price Chart Daily rate limit has been hit"

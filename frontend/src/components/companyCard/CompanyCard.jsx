@@ -4,6 +4,7 @@ import './CompanyCard.css'
 import Loading from '../loading/Loading'
 import { formatFundName } from '../../helperFunctions/formatFundName'
 import { FaIndustry, FaBuilding, FaCalendarAlt, FaLink } from 'react-icons/fa'
+import { apiBaseUrl } from '../../utils/apiConfig'
 
 const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList }) => {
 
@@ -22,7 +23,7 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList 
             try {
                 setIsLoading(true)
                 setError("")
-                const response = await fetch(`http://localhost:5001/api/company/${symbol}`,
+                const response = await fetch(`${apiBaseUrl}/company/${symbol}`,
                     { signal: controller.signal }
 
                 )

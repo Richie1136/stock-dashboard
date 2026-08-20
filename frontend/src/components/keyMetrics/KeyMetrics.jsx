@@ -3,6 +3,7 @@ import './KeyMetrics.css'
 import Loading from '../loading/Loading'
 
 import { formatLargePriceValue, formatMetrics, formatMarketCap, formatNetAssets, convertDecimalToPercentage, getSymbol } from '../../helperFunctions'
+import { apiBaseUrl } from '../../utils/apiConfig'
 
 const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
 
@@ -19,7 +20,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
             try {
                 setIsLoading(true)
                 setError("")
-                const response = await fetch(`http://localhost:5001/api/metrics/${symbol}`,
+                const response = await fetch(`${apiBaseUrl}/metrics/${symbol}`,
                     { signal: controller.signal }
                 )
                 if (!response.ok) {

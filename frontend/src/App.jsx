@@ -8,6 +8,7 @@ import NewsCard from './components/newsCard/NewsCard'
 import { useState, useEffect } from 'react'
 import WatchList from './components/watchlist/WatchList'
 import { formatFundName } from './helperFunctions/formatFundName'
+import { apiBaseUrl } from './utils/apiConfig'
 
 function App() {
 
@@ -37,7 +38,7 @@ function App() {
         setIsLoading(true)
         setError("")
         setFinishedEtfSymbol("")
-        const fundResponse = await fetch(`http://localhost:5001/api/etf/${symbol}`,
+        const fundResponse = await fetch(`${apiBaseUrl}/etf/${symbol}`,
           { signal: controller.signal }
         )
         if (!fundResponse.ok) {

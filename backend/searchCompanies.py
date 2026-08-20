@@ -1,15 +1,11 @@
-from flask import Flask, jsonify, request, Blueprint
-from flask_cors import CORS
+from flask import jsonify, request, Blueprint
 from dotenv import load_dotenv
 import os
 import requests
 
-app = Flask(__name__)
-CORS(app)
-
 load_dotenv()
 
-API_KEY= os.getenv('FINNHUB_API_KEY').strip()
+API_KEY= os.getenv('FINNHUB_API_KEY', "").strip()
 
 search_companies_bp = Blueprint("search_companies", __name__)
 

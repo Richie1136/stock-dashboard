@@ -1,11 +1,7 @@
-from flask import Flask, jsonify, Blueprint
-from flask_cors import CORS
+from flask import jsonify, Blueprint
 from dotenv import load_dotenv
 import os
 import requests
-
-app = Flask(__name__)
-CORS(app)
 
 load_dotenv()
 

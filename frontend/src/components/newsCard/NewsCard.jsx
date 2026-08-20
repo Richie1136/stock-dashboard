@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './NewsCard.css'
 import Loading from '../loading/Loading'
+import { apiBaseUrl } from '../../utils/apiConfig'
 
 const NewsCard = ({ symbol }) => {
     const [companyNews, setCompanyNews] = useState([])
@@ -16,7 +17,7 @@ const NewsCard = ({ symbol }) => {
             try {
                 setIsLoading(true)
                 setError("")
-                const response = await fetch(`http://localhost:5001/api/company-news/${symbol}`, {
+                const response = await fetch(`${apiBaseUrl}/company-news/${symbol}`, {
                     signal: controller.signal // Connect this fetch request to the AbortController so it can be cancelled.
                 })
                 if (!response.ok) {

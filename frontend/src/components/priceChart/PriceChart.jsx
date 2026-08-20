@@ -4,6 +4,7 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import Loading from '../loading/Loading'
 import { CustomTooltip } from './customTooltip'
 import { formatLargePriceValue } from '../../helperFunctions/formatLargePriceValue'
+import { apiBaseUrl } from '../../utils/apiConfig'
 
 const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
 
@@ -23,7 +24,7 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
             try {
                 setError("")
                 setIsLoading(true)
-                const response = await fetch(`http://localhost:5001/api/price-history/${symbol}`, {
+                const response = await fetch(`${apiBaseUrl}/price-history/${symbol}`, {
                     signal: controller.signal
                 })
                 if (!response.ok) {

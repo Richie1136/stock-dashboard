@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import './Header.css'
+import { apiBaseUrl } from "../../utils/apiConfig"
 
 const Header = ({ selectStock }) => {
 
@@ -44,7 +45,7 @@ const Header = ({ selectStock }) => {
     const getStockSuggestions = async (query, signal) => {
 
         try {
-            const response = await fetch(`http://localhost:5001/api/search?query=${encodeURIComponent(query)}`,
+            const response = await fetch(`${apiBaseUrl}/search?query=${encodeURIComponent(query)}`,
                 { signal }
 
             )

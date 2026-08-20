@@ -1,11 +1,8 @@
-from flask import Flask, jsonify, Blueprint
-from flask_cors import CORS
+from flask import jsonify, Blueprint
 from dotenv import load_dotenv
 import os
 import requests
 
-app = Flask(__name__)
-CORS(app)
 
 load_dotenv()
 
@@ -46,7 +43,7 @@ def company(symbol):
 
 
 
-VANTAGE_API_KEY= os.getenv('ALPHAVANTAGE_API_KEY').strip()
+VANTAGE_API_KEY= os.getenv('ALPHAVANTAGE_API_KEY', "").strip()
 
 fund_profile_bp = Blueprint("fund_profile", __name__)
 
@@ -68,9 +65,6 @@ def fund_profile(symbol):
 
 
     profile_data = search_response.json()
-    print("Alpha Vantage HTTP status", search_response.status_code)
-    print("ETF response keys:", profile_data.keys())
-    print("ETF response body", profile_data)
 
     if 'net_assets' not in profile_data:
         return jsonify({
