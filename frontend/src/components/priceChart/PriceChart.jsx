@@ -122,6 +122,7 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
                             </defs>
                             <CartesianGrid stroke='#374151' strokeDasharray="3 3" vertical={false} opacity={0.25} />
                             <XAxis minTickGap={20} dataKey="date" padding={{ left: 15, right: 20 }} tickMargin={18} tickFormatter={formatDate} />
+                            {/* Fit the axis to the selected range so short-term price movement remains visible. */}
                             <YAxis width={75} padding={{ top: 10, bottom: 15 }} domain={["dataMin", "dataMax"]} tickFormatter={formatLargePriceValue} />
                             <Tooltip content={<CustomTooltip />} formatDate={formatDate} />
                             <Area fill="url(#priceGradient)" dot={false} activeDot={{ r: 6, fill: '#ffffff', stroke: '#60a5fa', strokeWidth: 3 }} strokeWidth={2.5} type="monotone" dataKey="close" stroke='#60a5fa' />

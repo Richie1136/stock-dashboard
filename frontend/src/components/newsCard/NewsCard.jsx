@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import './NewsCard.css'
 import Loading from '../loading/Loading'
 import { apiBaseUrl } from '../../utils/apiConfig'
+import { formatNewsDate } from '../../helperFunctions/formatNewsDate'
 
 const NewsCard = ({ symbol }) => {
     const [companyNews, setCompanyNews] = useState([])
@@ -18,7 +19,7 @@ const NewsCard = ({ symbol }) => {
                 setIsLoading(true)
                 setError("")
                 const response = await fetch(`${apiBaseUrl}/company-news/${symbol}`, {
-                    signal: controller.signal // Connect this fetch request to the AbortController so it can be cancelled.
+                    signal: controller.signal
                 })
                 if (!response.ok) {
                     throw new Error(`News Data request failed with status ${response.status}`
@@ -63,19 +64,24 @@ const NewsCard = ({ symbol }) => {
             {isLoading && <Loading />}
             {error && <p>{error}</p>}
             {!symbol && <h4>{"Search for a stock or ETF to view company news."}</h4>}
-            {companyNews.slice(0, 5).map((article) => {
-                const { headline, source, summary, id } = article
-                return (
-                    <article className='news-card' key={id}>
-                        <div className='news-card-content'>
-                            <p className='news-card-source'>{formatNewsSource(source)}</p>
-                            <h3 className='news-card-headline'>{headline}</h3>
-                            <p className='news-card-summary'>{summary}</p>
-                        </div>
-                    </article>
-                )
-            })}
-        </div>
+            {/* Keep the card compact even when the provider returns a larger news batch. */}
+            <div className='news-scroll'>
+                <div className='news-card-list'>
+                    {companyNews.map((article) => {
+                        const { headline, source, summary, id, datetime, url } = article
+                        return (
+                            <article className='news-card' key={id}>
+                                <div className='news-card-content'>
+                                    <p className='news-card-source'>{formatNewsSource(source)} • {formatNewsDate(datetime)}</p>
+                                    <h3 className='news-card-headline'><a href={url} rel="noopener noreferrer" target='_blank'>{headline}</a></h3>
+                                    <p className='news-card-summary'>{summary}</p>
+                                </div>
+                            </article>
+                        )
+                    })}
+                </div>
+            </div>
+        </div >
     )
 }
 

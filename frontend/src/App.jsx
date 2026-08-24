@@ -20,6 +20,7 @@ function App() {
   const [finishedEtfSymbol, setFinishedEtfSymbol] = useState("")
   const [error, setError] = useState("")
   const [fundWatchList, setFundWatchList] = useState([])
+  const [hasLoadedWatchlist, setHasLoadedWatchlist] = useState(false)
 
   // ETF profile data must finish loading before dependent cards request their data.
   useEffect(() => {
@@ -70,6 +71,24 @@ function App() {
       clearTimeout(delayTimer)
     }
   }, [symbol, assetType])
+
+  useEffect(() => {
+    // Do not overwrite a saved list with the initial empty state before hydration finishes.
+    if (hasLoadedWatchlist) {
+      localStorage.setItem("WatchList", JSON.stringify(fundWatchList))
+    }
+  }, [fundWatchList, hasLoadedWatchlist])
+
+  useEffect(() => {
+    // Hydrate once on startup; subsequent watchlist changes are persisted above.
+    const storedValue = JSON.parse(localStorage.getItem("WatchList"))
+    if (storedValue !== null) {
+      setFundWatchList(storedValue)
+    }
+    setHasLoadedWatchlist(true)
+  }, [])
+
+
 
   const updateFundWatchList = () => {
     // Prevent empty and duplicate entries from being added to the watchlist.

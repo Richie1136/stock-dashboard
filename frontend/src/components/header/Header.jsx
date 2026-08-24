@@ -10,6 +10,7 @@ const Header = ({ selectStock }) => {
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [suggestionsLoading, setSuggestionsLoading] = useState(false)
     const inputClickAway = useRef(null)
+    // Remember an Enter press that occurs while the debounced request is still pending.
     const pendingSearch = useRef(false)
 
     // Map common former company names to terms supported by the search API.
@@ -132,8 +133,6 @@ const Header = ({ selectStock }) => {
             const normalizedQuery = query.toLowerCase()
 
             const resolvedQuery = stockAliases[normalizedQuery] || normalizedQuery
-            // Always fetch results for the exact submitted query.
-
             if (suggestions.length === 0) {
                 setSearchError(`No matching Stock found for ${query} `)
                 return
@@ -161,7 +160,8 @@ const Header = ({ selectStock }) => {
         setShowSuggestions(false)
     }
 
-    useEffect(() => { // Close the suggestions dropdown when the user clicks outside the search container.
+    // Close the suggestions dropdown when the user clicks outside the search container.
+    useEffect(() => {
         const handleInputClickAway = (e) => {
             if (!inputClickAway.current) return;
 

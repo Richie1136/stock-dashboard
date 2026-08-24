@@ -14,4 +14,35 @@
 .news-card-content {
     flex: 1;
     min-width: 0;
+    padding-right: 10px;
+}
+
+.news-card-list {
+    max-height: 500px;
+}
+
+.news-scroll {
+    overflow-y: auto;
+}
+
+.news-scroll::-webkit-scrollbar {
+    width: 5px;
+}
+
+.news-scroll::-webkit-scrollbar-thumb {
+    background-color: #6b7280;
+    border-radius: 999px;
+}
+
+.news-scroll::-webkit-scrollbar-track {
+    background-color: transparent;
+}
+
+.news-card-headline a {
+    text-decoration: none;
+    color: unset;
+}
+
+.news-card-headline a:hover {
+    color: #60a5fa;
 }

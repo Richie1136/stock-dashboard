@@ -28,7 +28,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    /* min-width: 0; */
+    min-width: 0;
 }
 
 .fund-name {
@@ -57,4 +57,26 @@
 
 .remove-button:hover {
     color: #ef4444;
+}
+
+
+.watchlist-empty {
+    margin-top: 12px;
+    padding: 16px;
+    border-radius: 10px;
+    background-color: #273449;
+}
+
+.watchlist-empty-title {
+    margin: 0 0 6px;
+    color: #f3f4f6;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.watchlist-empty-text {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 13px;
+    line-height: 1.4;
 }

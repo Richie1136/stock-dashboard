@@ -16,7 +16,7 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList 
         if (!symbol || assetType !== "Common Stock") return
 
 
-        // AbortController is a built-in JavaScript API that lets you cancel an asynchronous operation
+        // Tie the request to this selection so a slower previous response cannot replace it.
         const controller = new AbortController()
 
         const getCompanyCard = async () => {
@@ -74,6 +74,7 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList 
     const { exchange, finnhubIndustry, ipo, logo, name, ticker, weburl } = company ?? {}
 
     const formatExchanges = {
+        // Finnhub returns formal exchange names; the card uses familiar abbreviations.
         'NEW YORK STOCK EXCHANGE, INC.': 'NYSE',
         'NASDAQ NMS - GLOBAL MARKET': 'NASDAQ'
     }
