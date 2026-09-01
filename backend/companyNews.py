@@ -44,8 +44,6 @@ def company_news(symbol):
     company_news_data = company_news_response.json()
 
     if not company_news_data:
-        return jsonify({
-            "error": f"No company news found for {symbol}"
-        })
+        return jsonify([])
 
     return jsonify(company_news_data)

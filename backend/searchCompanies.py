@@ -9,13 +9,19 @@ API_KEY= os.getenv('FINNHUB_API_KEY', "").strip()
 
 search_companies_bp = Blueprint("search_companies", __name__)
 
+search_cache = {}
+
 @search_companies_bp.route("/api/search", methods=["GET"])
 def search_companies():
     headers = {
         "X-Finnhub-Token": API_KEY
     }
-    search_term = request.args.get("query")
+    search_term = request.args.get("query", "").strip().lower()
     search_url = (f"https://finnhub.io/api/v1/search?q={search_term}")
+    
+    
+    if search_term in search_cache:
+        return jsonify(search_cache[search_term])
     search_response = requests.get(search_url, headers=headers, timeout=10)
 
     if not search_response.ok:
@@ -23,4 +29,5 @@ def search_companies():
             "error": "Finnhub search request failed"
         }), search_response.status_code   
     search_data = search_response.json()
+    search_cache[search_term] = search_data
     return jsonify(search_data)

@@ -67,7 +67,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile }) => {
         { label: "Forward P/E: ", value: formatMetrics(forwardPE) },
         { label: "Dividend Yield: ", value: `${formatMetrics(currentDividendYieldTTM)}`, suffix: getSymbol("%", currentDividendYieldTTM) },
         { label: "Beta: ", value: formatMetrics(beta) },
-        { label: "Earnings Per Share: ", value: epsTTM?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), prefix: getSymbol("$", epsTTM) },
+        { label: "Earnings Per Share: ", value: epsTTM ? epsTTM?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A", prefix: getSymbol("$", epsTTM) },
         {
             label: "52 Week High: ", value: formatLargePriceValue(week52High)
         },

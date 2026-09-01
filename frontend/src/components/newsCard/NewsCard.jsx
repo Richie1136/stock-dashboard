@@ -3,12 +3,12 @@ import './NewsCard.css'
 import Loading from '../loading/Loading'
 import { apiBaseUrl } from '../../utils/apiConfig'
 import { formatNewsDate } from '../../helperFunctions/formatNewsDate'
+import { formatNewsSummary } from '../../helperFunctions/formatNewsSummary'
 
 const NewsCard = ({ symbol }) => {
     const [companyNews, setCompanyNews] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
-
 
     useEffect(() => {
         if (!symbol) return
@@ -57,24 +57,24 @@ const NewsCard = ({ symbol }) => {
 
     }
 
-
     return (
         <div className='card news-list'>
             <h2>Company News</h2>
             {isLoading && <Loading />}
             {error && <p>{error}</p>}
-            {!symbol && <h4>{"Search for a stock or ETF to view company news."}</h4>}
+            {!error && !isLoading && symbol && companyNews.length === 0 ? <h4>{"No Company News"}</h4> : !symbol && <h4>{"Search for a stock or ETF to view company news."}</h4>}
             {/* Keep the card compact even when the provider returns a larger news batch. */}
             <div className='news-scroll'>
                 <div className='news-card-list'>
-                    {companyNews.map((article) => {
-                        const { headline, source, summary, id, datetime, url } = article
+                    {companyNews?.map((article) => {
+                        const { headline, source, summary, id, datetime, url } = article ?? {}
+
                         return (
                             <article className='news-card' key={id}>
                                 <div className='news-card-content'>
                                     <p className='news-card-source'>{formatNewsSource(source)} • {formatNewsDate(datetime)}</p>
                                     <h3 className='news-card-headline'><a href={url} rel="noopener noreferrer" target='_blank'>{headline}</a></h3>
-                                    <p className='news-card-summary'>{summary}</p>
+                                    {summary && !summary.startsWith("https") && !summary.startsWith("http") && <p className='news-card-summary'>{formatNewsSummary(summary)}</p>}
                                 </div>
                             </article>
                         )

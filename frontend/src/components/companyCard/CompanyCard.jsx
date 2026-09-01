@@ -116,7 +116,7 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList 
                             <div className='company-details'>
                                 <FaBuilding />
                                 <span className='details-label'>Exchange: </span>
-                                <span className='details-value'>{formatExchanges[exchange]}</span>
+                                <span className='details-value'>{formatExchanges[exchange] || exchange}</span>
                             </div>
                             <div className='company-details'>
                                 <FaCalendarAlt />

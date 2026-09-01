@@ -105,7 +105,7 @@ function App() {
 
   return (
     <section className="app">
-      <Header selectStock={selectStock} />
+      <Header selectStock={selectStock} symbol={symbol} />
       <div className='dashboard'>
         <WatchList setFundWatchList={setFundWatchList} symbol={symbol} fundWatchList={fundWatchList} selectStock={selectStock} />
         <main className='dashboard-main'>

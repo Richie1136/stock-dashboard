@@ -1,5 +1,5 @@
 export const formatLargePriceValue = (value) => {
-    if (value == null || value === undefined) return ""
+    if (value == null || value === undefined) return "N/A"
 
     if (value > 99_000) {
         const largeValue = value / 1_000

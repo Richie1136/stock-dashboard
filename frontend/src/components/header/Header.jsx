@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import './Header.css'
 import { apiBaseUrl } from "../../utils/apiConfig"
 
-const Header = ({ selectStock }) => {
+const Header = ({ selectStock, symbol }) => {
 
     const [searchStock, setSearchStock] = useState("")
     const [suggestions, setSuggestions] = useState([])
@@ -10,8 +10,8 @@ const Header = ({ selectStock }) => {
     const [showSuggestions, setShowSuggestions] = useState(false)
     const [suggestionsLoading, setSuggestionsLoading] = useState(false)
     const inputClickAway = useRef(null)
-    // Remember an Enter press that occurs while the debounced request is still pending.
-    const pendingSearch = useRef(false)
+
+    const searchControllerRef = useRef(null)
 
     // Map common former company names to terms supported by the search API.
     const stockAliases = {
@@ -19,7 +19,8 @@ const Header = ({ selectStock }) => {
         facebook: "meta"
     }
 
-    const searchSuggestions = (suggestions, resolvedQuery, query, normalizedQuery) => {
+    const searchSuggestions = (suggestions, resolvedQuery, query, normalizedQuery, queryResult) => {
+
         // Prefer an exact ticker match, then fall back to the start of a company name.
         const exactSymbolMatch = suggestions.find((stock) => {
             return stock?.symbol?.toLowerCase() === resolvedQuery
@@ -32,7 +33,7 @@ const Header = ({ selectStock }) => {
         const selectedStock = exactSymbolMatch || companyNameMatch
 
         if (!selectedStock?.symbol) {
-            setSearchError(`No Matching Stock Found for ${query}`)
+            setSearchError(`No results found for "${queryResult}"`)
             return
         }
         selectStock(selectedStock)
@@ -74,7 +75,8 @@ const Header = ({ selectStock }) => {
 
     useEffect(() => {
         let ignore = false
-        const controller = new AbortController()
+        searchControllerRef.current = new AbortController()
+        const controller = searchControllerRef.current
         const signal = controller.signal
         const query = searchStock.trim()
 
@@ -96,12 +98,6 @@ const Header = ({ selectStock }) => {
                 setSuggestions(stockSuggestions)
                 setShowSuggestions(true)
                 setSuggestionsLoading(false)
-
-                if (pendingSearch.current) {
-                    pendingSearch.current = false
-                    searchSuggestions(stockSuggestions, resolvedQuery, query, normalizedQuery)
-                }
-
             }
         }
         // Debounce requests so typing does not trigger a search on every keystroke.
@@ -118,26 +114,38 @@ const Header = ({ selectStock }) => {
     }, [searchStock])
 
 
-    const handleSearch = () => {
+    const handleSearch = async () => {
         const query = searchStock.trim()
 
         if (!query) return
 
+        const normalizedQuery = query.toLowerCase()
+
+        const resolvedQuery = stockAliases[normalizedQuery] || normalizedQuery
+
+        const queryResult = query.length > 18
+            ? `${query.slice(0, 18)}...`
+            : query
+
+        if (searchControllerRef.current) {
+            searchControllerRef.current.abort()
+        }
+
+        searchControllerRef.current = new AbortController()
         if (suggestionsLoading) {
-            // Submit once the in-flight suggestion request has populated the results.
-            pendingSearch.current = true
+            const controller = searchControllerRef.current
+            const signal = controller.signal
+            const result = await getStockSuggestions(resolvedQuery, signal)
+            searchSuggestions(result, resolvedQuery, query, normalizedQuery, queryResult)
             return
         }
 
         try {
-            const normalizedQuery = query.toLowerCase()
-
-            const resolvedQuery = stockAliases[normalizedQuery] || normalizedQuery
             if (suggestions.length === 0) {
-                setSearchError(`No matching Stock found for ${query} `)
+                setSearchError(`No results found for "${queryResult}"`)
                 return
             }
-            searchSuggestions(suggestions, resolvedQuery, query, normalizedQuery)
+            searchSuggestions(suggestions, resolvedQuery, query, normalizedQuery, queryResult)
         } catch (err) {
             console.error("Unable to search for stock:", err)
         }
@@ -179,6 +187,19 @@ const Header = ({ selectStock }) => {
         setSearchError("")
     }
 
+    // Remove old stale search
+    // When i enter a symbol that finds no results and click on the watchlist items
+    // The error message should no longer appear
+
+    useEffect(() => {
+        if (!symbol) return
+        setSearchStock("")
+        setSearchError("")
+        setSuggestions([])
+        setShowSuggestions(false)
+    }, [symbol])
+
+
     return (
         <div className="header">
             <h1>Stock Dashboard</h1>
@@ -189,7 +210,9 @@ const Header = ({ selectStock }) => {
                             if (e.key === 'Enter') handleSearch()
                         }}
                     />
-                    <p>{searchError}</p>
+                    {searchError && <p style={{ marginTop: '5px', color: 'red' }}>
+                        {searchError}
+                    </p>}
                     <button className="clear-button" onClick={handleClear}>x</button>
                     <div className="suggestions">
                         {showSuggestions && suggestions?.map((stock, index) => {
