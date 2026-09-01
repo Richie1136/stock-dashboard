@@ -187,9 +187,7 @@ const Header = ({ selectStock, symbol }) => {
         setSearchError("")
     }
 
-    // Remove old stale search
-    // When i enter a symbol that finds no results and click on the watchlist items
-    // The error message should no longer appear
+    // Clear stale search results and errors when a stock is selected elsewhere.
 
     useEffect(() => {
         if (!symbol) return
