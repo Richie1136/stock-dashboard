@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import './Header.css'
 import { apiBaseUrl } from "../../utils/apiConfig"
+import { isSupportedAssetType } from "../../constants/assetTypes"
 
 const Header = ({ selectStock, symbol }) => {
 
@@ -19,7 +20,7 @@ const Header = ({ selectStock, symbol }) => {
         facebook: "meta"
     }
 
-    const searchSuggestions = (suggestions, resolvedQuery, query, normalizedQuery, queryResult) => {
+    const searchSuggestions = (suggestions, resolvedQuery, query, normalizedQuery) => {
 
         // Prefer an exact ticker match, then fall back to the start of a company name.
         const exactSymbolMatch = suggestions.find((stock) => {
@@ -33,7 +34,7 @@ const Header = ({ selectStock, symbol }) => {
         const selectedStock = exactSymbolMatch || companyNameMatch
 
         if (!selectedStock?.symbol) {
-            setSearchError(`No results found for "${queryResult}"`)
+            setSearchError("No results found for this search")
             return
         }
         selectStock(selectedStock)
@@ -44,10 +45,10 @@ const Header = ({ selectStock, symbol }) => {
     }
 
 
-    const getStockSuggestions = async (query, signal) => {
+    const getStockSuggestions = async (query, signal, explicitSearch = false) => {
 
         try {
-            const response = await fetch(`${apiBaseUrl}/search?query=${encodeURIComponent(query)}`,
+            const response = await fetch(`${apiBaseUrl}/search?query=${encodeURIComponent(query)}&explicit=${explicitSearch}`,
                 { signal }
 
             )
@@ -55,13 +56,18 @@ const Header = ({ selectStock, symbol }) => {
                 throw new Error(`Search failed with status ${response.status}`)
             }
             const data = await response.json()
+            console.log(data)
 
             // The dashboard currently supports US-listed stocks and ETPs only.
             const supportedAssets = data?.result?.filter((stock) => {
-                return (
-                    (stock.type === "Common Stock" || stock.type === 'ETP') && (!stock.displaySymbol.includes(".") || stock.displaySymbol === "BRK.A")
-                )
+                console.log()
+                if (!isSupportedAssetType(stock.type)) {
+                    console.log("Unknown Finnhub type:", stock.type, stock)
+                }
+                return isSupportedAssetType(stock.type) &&
+                    (!stock.displaySymbol.includes(".") || stock.displaySymbol === "BRK.A")
             }) || []
+            console.log("Supported assets:", supportedAssets)
             return supportedAssets
         } catch (error) {
             if (error.name !== "AbortError") {
@@ -123,10 +129,6 @@ const Header = ({ selectStock, symbol }) => {
 
         const resolvedQuery = stockAliases[normalizedQuery] || normalizedQuery
 
-        const queryResult = query.length > 18
-            ? `${query.slice(0, 18)}...`
-            : query
-
         if (searchControllerRef.current) {
             searchControllerRef.current.abort()
         }
@@ -135,17 +137,17 @@ const Header = ({ selectStock, symbol }) => {
         if (suggestionsLoading) {
             const controller = searchControllerRef.current
             const signal = controller.signal
-            const result = await getStockSuggestions(resolvedQuery, signal)
-            searchSuggestions(result, resolvedQuery, query, normalizedQuery, queryResult)
+            const result = await getStockSuggestions(resolvedQuery, signal, true)
+            searchSuggestions(result, resolvedQuery, query, normalizedQuery)
             return
         }
 
         try {
             if (suggestions.length === 0) {
-                setSearchError(`No results found for "${queryResult}"`)
+                setSearchError("No results found for this search")
                 return
             }
-            searchSuggestions(suggestions, resolvedQuery, query, normalizedQuery, queryResult)
+            searchSuggestions(suggestions, resolvedQuery, query, normalizedQuery)
         } catch (err) {
             console.error("Unable to search for stock:", err)
         }
@@ -197,18 +199,17 @@ const Header = ({ selectStock, symbol }) => {
         setShowSuggestions(false)
     }, [symbol])
 
-
     return (
         <div className="header">
             <h1>Stock Dashboard</h1>
             <div className='search-bar-container'>
                 <div className="search-input-container" ref={inputClickAway}>
-                    <input value={searchStock} placeholder="Search for Stock" onChange={handleInputChange}
+                    <input className={searchError ? "error" : ""} value={searchStock} placeholder="Search for Stock" onChange={handleInputChange}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSearch()
                         }}
                     />
-                    {searchError && <p style={{ marginTop: '5px', color: 'red' }}>
+                    {searchError && <p className="search-error">
                         {searchError}
                     </p>}
                     <button className="clear-button" onClick={handleClear}>x</button>

@@ -5,48 +5,11 @@ import Loading from '../loading/Loading'
 import { formatFundName } from '../../helperFunctions/formatFundName'
 import { FaIndustry, FaBuilding, FaCalendarAlt, FaLink } from 'react-icons/fa'
 import { apiBaseUrl } from '../../utils/apiConfig'
+import { ASSET_TYPES, isStockAssetType } from '../../constants/assetTypes'
 
-const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList }) => {
+const CompanyCard = ({ symbol, isLoading, error, company, assetType, fundName, etfProfile, mutualFundProfile, updateWatchList }) => {
 
-    const [company, setCompany] = useState(null)
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState("")
-
-    useEffect(() => {
-        if (!symbol || assetType !== "Common Stock") return
-
-
-        // Tie the request to this selection so a slower previous response cannot replace it.
-        const controller = new AbortController()
-
-        const getCompanyCard = async () => {
-            try {
-                setIsLoading(true)
-                setError("")
-                const response = await fetch(`${apiBaseUrl}/company/${symbol}`,
-                    { signal: controller.signal }
-
-                )
-                if (!response.ok) {
-                    throw new Error(`Request failed with status ${response.status}`)
-                }
-                const data = await response.json()
-                setCompany(data)
-            } catch (error) {
-                if (error.name !== "AbortError") {
-                    console.error(error)
-                    setError("Unable to load company information")
-                    setCompany(null)
-                }
-            } finally {
-                if (!controller.signal.aborted) {
-                    setIsLoading(false)
-                }
-            }
-        }
-        getCompanyCard()
-    }, [symbol, assetType])
-
+    const isStock = isStockAssetType(assetType)
 
     if (isLoading) {
         return (
@@ -56,14 +19,14 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList 
         )
     }
 
-    if (!company && assetType === "Common Stock") {
+    if (!company && isStock) {
         return <div className='card company-card'>
             <h3>{"Company Overview"}</h3>
             <p>{"Search for a stock to display company information."}</p>
         </div>
     }
 
-    if (company?.error && assetType === "Common Stock") {
+    if (company?.error && isStock) {
         return <div className='card company-card'>
             <h3>{"Company Overview"}</h3>
             <p>{"No company found. Try searching for a different stock."}</p>
@@ -71,7 +34,7 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList 
 
     }
 
-    const { exchange, finnhubIndustry, ipo, logo, name, ticker, weburl } = company ?? {}
+    const { exchange, finnhubIndustry, ipo, logo, name, weburl } = company ?? {}
 
     const formatExchanges = {
         // Finnhub returns formal exchange names; the card uses familiar abbreviations.
@@ -83,14 +46,14 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList 
 
     return (
         <div className='card company-card'>
-            {assetType !== "Common Stock" ? (
+            {assetType === ASSET_TYPES.ETP || assetType === ASSET_TYPES.MUTUAL_FUND ? (
                 <>
                     <h3>Fund Overview</h3>
                     <h2>{displayFundName}</h2>
                     <p>Ticker: {symbol}</p>
-                    <p>Inception Date: {formatIPOLayout(etfProfile?.inception_date)}</p>
-                    <p>Asset Type: {"ETF"}</p>
-                    <p>Leveraged: {etfProfile?.leveraged}</p>
+                    <p>Inception Date: {assetType === "ETP" ? formatIPOLayout(etfProfile?.inception_date) : formatIPOLayout(mutualFundProfile?.firstpricedate)}</p>
+                    <p>Asset Type: {assetType === "ETP" ? "ETF" : "Mutual Fund"}</p>
+                    {assetType === "ETP" && <p>Leveraged: {etfProfile?.leveraged}</p>}
                     <div className='company-actions'>
                         <button onClick={updateWatchList}>Add To Watchlist</button>
                     </div>
@@ -103,8 +66,8 @@ const CompanyCard = ({ symbol, assetType, fundName, etfProfile, updateWatchList 
                         <div className='company-header-info'>
                             <h2>{name}</h2>
                             <div className='ticker-row'>
-                                <p><strong>{ticker}</strong></p>
-                                <span className='asset-badge'>Common Stock</span>
+                                <p><strong>{symbol}</strong></p>
+                                <span className='asset-badge'>{assetType}</span>
                             </div>
                             <div className='company-details'>
                                 <FaIndustry />

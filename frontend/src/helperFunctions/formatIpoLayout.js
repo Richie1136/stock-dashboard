@@ -5,8 +5,9 @@ export const formatIPOLayout = (ipo) => {
     if (!ipo) {
         return "N/A"
     }
-    const year = ipo.split('-')[0]
-    const month = ipo.split('-')[1]
-    const day = ipo.split('-')[2]
+
+    const ipoOnly = ipo.split("T")[0]
+    const [year, month, day] = ipoOnly.split("-")
+
     return `${monthNames[month]} ${day}, ${year}`
 }

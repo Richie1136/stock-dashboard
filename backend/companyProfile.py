@@ -45,16 +45,16 @@ def company(symbol):
 
 VANTAGE_API_KEY= os.getenv('ALPHAVANTAGE_API_KEY', "").strip()
 
-fund_profile_bp = Blueprint("fund_profile", __name__)
+fund_etf_profile_bp = Blueprint("fund_etf_profile", __name__)
 
-profile_cache = {}
+etf_profile_cache = {}
 
 
-@fund_profile_bp.route("/api/etf/<symbol>", methods=["GET"])
-def fund_profile(symbol):
+@fund_etf_profile_bp.route("/api/etf/<symbol>", methods=["GET"])
+def fund_etf_profile(symbol):
     symbol = symbol.strip().upper()
-    if symbol in profile_cache:
-        return jsonify(profile_cache[symbol])
+    if symbol in etf_profile_cache:
+        return jsonify(etf_profile_cache[symbol])
     search_url = (f"https://www.alphavantage.co/query?function=ETF_PROFILE&symbol={symbol}&apikey={VANTAGE_API_KEY}")
     search_response = requests.get(search_url, timeout=10)
 
@@ -66,9 +66,47 @@ def fund_profile(symbol):
 
     profile_data = search_response.json()
 
-    if 'net_assets' not in profile_data:
+    if "Information" in profile_data:
         return jsonify({
-            "error": "Company card data rate limit has been hit"
-        }),429  
-    profile_cache[symbol] = profile_data
+            "error": "ETF Profile rate limit has been hit"
+        }), 429
+
+    if not profile_data:
+        return jsonify({
+            "error": "No ETF profile data returned"
+        }),404
+    etf_profile_cache[symbol] = profile_data
+    return jsonify(profile_data)
+
+fund_mutual_fund_profile_bp = Blueprint("fund_mutual_fund_profile", __name__)
+
+BUSINESS_QUANT_API_KEY= os.getenv('BUSINESS_QUANT_API_KEY', "").strip()
+
+mutual_fund_profile_cache = {}
+
+@fund_mutual_fund_profile_bp.route("/api/mutual-fund/<symbol>", methods=["GET"])
+def fund_mutual_fund_profile_(symbol):
+    symbol = symbol.strip().upper()
+    if symbol in mutual_fund_profile_cache:
+        return jsonify(mutual_fund_profile_cache[symbol])
+    search_url = (f"https://data.businessquant.com/funds/profile?ticker={symbol}&api_key={BUSINESS_QUANT_API_KEY}")
+    print("SEARCH URLLL", search_url)
+    search_response = requests.get(search_url, timeout=10)
+    print(search_response)
+
+    print("Business Quant URL:", search_url)
+
+    print("Status:", search_response.status_code)
+    print("Response:", search_response.text)
+
+    if not search_response.ok:
+        return jsonify({
+            "error": "Profile data request failed"
+        }), search_response.status_code 
+
+
+    profile_data = search_response.json()
+    print("PROFILE DATAAA", profile_data)
+
+    mutual_fund_profile_cache[symbol] = profile_data
     return jsonify(profile_data)

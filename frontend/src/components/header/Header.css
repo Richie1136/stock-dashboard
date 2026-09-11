@@ -83,13 +83,33 @@
     box-sizing: border-box;
 }
 
+.search-input-container input.error {
+    border: 1px solid #ef4444;
+}
+
+.search-input-container input.error:focus {
+    border-color: #ef4444;
+    outline: none;
+}
+
+.search-error {
+    margin-top: 8px;
+    color: #ef4444;
+    font-size: 13px;
+    font-weight: 500;
+}
+
 .clear-button {
     position: absolute;
-    right: 8px;
-    top: 50%;
+    right: 10px;
+    top: 52%;
     transform: translateY(-50%);
     border: none;
     background: transparent;
-    color: white;
+    color: #9ca3af;
     cursor: pointer;
+}
+
+.clear-button:hover {
+    color: white;
 }

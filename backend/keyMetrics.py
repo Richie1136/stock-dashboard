@@ -39,3 +39,73 @@ def key_metrics(symbol):
         }), 404
 
     return jsonify(metrics)
+
+
+mutual_fund_holdings_bp = Blueprint("mutual_fund_holdings", __name__)
+
+BUSINESS_QUANT_API_KEY= os.getenv('BUSINESS_QUANT_API_KEY', "").strip()
+
+@mutual_fund_holdings_bp.route("/api/mutual-fund/holdings/<symbol>", methods=['GET'])
+def mutual_fund_holdings(symbol):
+    symbol = symbol.strip().upper()
+
+    if not symbol:
+        return jsonify({"error": "A stock symbol is required"}), 400
+    
+    # if symbol in mutual_fund_profile_cache:
+    #     return jsonify(mutual_fund_profile_cache[symbol])
+    key_metrics_holdings_url = (f"https://data.businessquant.com/funds/holdings?ticker={symbol}&api_key={BUSINESS_QUANT_API_KEY}")
+    print("KEY METRICS HOLDINGS URLLL", key_metrics_holdings_url)
+    key_metrics_holdings_response = requests.get(key_metrics_holdings_url, timeout=10)
+    print(key_metrics_holdings_response)
+
+    print("Business Quant HOLDINGS URL:", key_metrics_holdings_url)
+
+    print("Status:", key_metrics_holdings_response.status_code)
+    print("Response:", key_metrics_holdings_response.text)
+
+    if not key_metrics_holdings_response.ok:
+        return jsonify({
+            "error": "Profile data request failed"
+        }), key_metrics_holdings_response.status_code 
+
+
+    key_metrics_holdings_data = key_metrics_holdings_response.json()
+    print("KEY METRICS EXPENSE RATIO DATA", key_metrics_holdings_data)
+
+    # mutual_fund_profile_cache[symbol] = profile_data
+    return jsonify(key_metrics_holdings_data)
+
+
+mutual_fund_expense_ratio_bp = Blueprint("mutual_fund_expense_ratio", __name__)
+
+@mutual_fund_expense_ratio_bp.route("/api/mutual-fund/expense-ratio/<symbol>", methods=['GET'])
+def mutual_fund_expense_ratio(symbol):
+    symbol = symbol.strip().upper()
+
+    if not symbol:
+        return jsonify({"error": "A stock symbol is required"}), 400
+    
+    # if symbol in mutual_fund_profile_cache:
+    #     return jsonify(mutual_fund_profile_cache[symbol])
+    key_metrics_expense_ratio_url = (f"https://data.businessquant.com/funds/overview?ticker={symbol}&api_key={BUSINESS_QUANT_API_KEY}")
+    print("KEY METRICS URLLL", key_metrics_expense_ratio_url)
+    key_metrics_expense_ratio_response = requests.get(key_metrics_expense_ratio_url, timeout=10)
+    print(key_metrics_expense_ratio_response)
+
+    print("Business Quant EXPENSE RATIO URL:", key_metrics_expense_ratio_url)
+
+    print("Status:", key_metrics_expense_ratio_response.status_code)
+    print("Response:", key_metrics_expense_ratio_response.text)
+
+    if not key_metrics_expense_ratio_response.ok:
+        return jsonify({
+            "error": "Profile data request failed"
+        }), key_metrics_expense_ratio_response.status_code 
+
+
+    key_metrics_expense_ratio_data = key_metrics_expense_ratio_response.json()
+    print("KEY METRICS EXPENSE RATIO DATA", key_metrics_expense_ratio_data)
+
+    # mutual_fund_profile_cache[symbol] = profile_data
+    return jsonify(key_metrics_expense_ratio_data)

@@ -5,52 +5,14 @@ import Loading from '../loading/Loading'
 import { CustomTooltip } from './customTooltip'
 import { formatLargePriceValue } from '../../helperFunctions/formatLargePriceValue'
 import { apiBaseUrl } from '../../utils/apiConfig'
+import { ASSET_TYPES } from '../../constants/assetTypes'
 
-const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
+const PriceChart = ({ symbol, assetType, finishedEtfSymbol, companyDailyPrice, setCompanyDailyPrice }) => {
 
-    const [companyDailyPrice, setCompanyDailyPrice] = useState(null)
+    // const [companyDailyPrice, setCompanyDailyPrice] = useState(null)
     const [selectedTimeline, setSelectedTimeline] = useState("ALL")
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
-
-
-    useEffect(() => {
-        // ETF charts wait for the profile request to finish to avoid competing API calls.
-        if (!symbol || (assetType === "ETP" && finishedEtfSymbol !== symbol)) return
-
-        const controller = new AbortController()
-
-        const fetchPriceCard = async () => {
-            try {
-                setError("")
-                setIsLoading(true)
-                const response = await fetch(`${apiBaseUrl}/price-history/${symbol}`, {
-                    signal: controller.signal
-                })
-                if (!response.ok) {
-                    throw new Error(`Request failed with status ${response.status}`)
-                }
-                const data = await response.json()
-                setCompanyDailyPrice(data)
-            } catch (err) {
-                if (err.name !== 'AbortError') {
-                    setCompanyDailyPrice(null)
-                    setError("Chart Data Rate limit has been reached")
-                    console.error(err)
-                }
-            } finally {
-                if (!controller.signal.aborted) {
-                    setIsLoading(false)
-                }
-            }
-        }
-        fetchPriceCard()
-
-        return () => {
-            controller.abort()
-        }
-
-    }, [symbol, assetType, finishedEtfSymbol])
 
     // Normalize the provider's date-keyed response into the array Recharts expects.
     const dailyPrices = companyDailyPrice?.['Time Series (Daily)'] ?? {}
@@ -59,6 +21,8 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
         date: date,
         close: Number(prices["4. close"])
     }))
+
+    console.log(companyDailyPrice)
 
     if (!symbol) {
         return <div className='card company-card'>
@@ -98,7 +62,7 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol }) => {
 
     return (
         <div className='card chart-card'>
-            {isLoading || (assetType === "ETP" && finishedEtfSymbol !== symbol) ? <Loading /> : error ?
+            {isLoading || (assetType === ASSET_TYPES.ETP && finishedEtfSymbol !== symbol) ? <Loading /> : error ?
                 <h4>{"Chart Data Rate limit has been reached"}</h4> :
                 <>
                     <div className='chart-header'>

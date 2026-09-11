@@ -27,6 +27,9 @@ def price_chart(symbol):
 
     search_data = search_response.json()
     if "Time Series (Daily)" not in search_data:
+        print("PRICE HISTORY FAILED")
+        print("Symbol:", symbol)
+        print("Alpha Vantage response", search_data)
         return jsonify({
             "error": "Alpha Vantage did not return price history",
             "details": search_data
