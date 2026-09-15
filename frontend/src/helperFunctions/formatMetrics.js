@@ -4,7 +4,7 @@ export const formatMetrics = (metric) => {
     }
     const convertedMetric = Number(metric);
     if (Number.isFinite(convertedMetric)) {
-        return metric.toFixed(2)
+        return convertedMetric.toFixed(2)
     }
     return "N/A"
 }

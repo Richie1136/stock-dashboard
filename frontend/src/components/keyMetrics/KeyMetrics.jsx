@@ -16,9 +16,8 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency }) => {
 
     const isStock = isStockAssetType(assetType)
 
-
     useEffect(() => {
-        if (!symbol || !isStock) return
+        if (!symbol || (assetType !== ASSET_TYPES.ETP && !isStock)) return
 
         const controller = new AbortController()
 
@@ -58,23 +57,19 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency }) => {
     useEffect(() => {
         if (!symbol || assetType !== ASSET_TYPES.MUTUAL_FUND) return
 
-
         const controller = new AbortController()
 
         const getMutualFundsKeyMetrics = async () => {
             try {
                 setIsLoading(true)
                 setError("")
-                // const response = await fetch(`${apiBaseUrl}/metrics/${symbol}`,
-                //     { signal: controller.signal }
-                // )
+
                 const response = await Promise.all([
                     fetch(`${apiBaseUrl}/mutual-fund/holdings/${symbol}`, { signal: controller.signal }),
                     fetch(`${apiBaseUrl}/mutual-fund/expense-ratio/${symbol}`, { signal: controller.signal })
                 ])
                 const [holdings, expenseRatio] = response
-                console.log(response)
-                console.log(holdings)
+
                 if (!holdings.ok) {
                     throw new Error(`Metrics request failed with status ${holdings.status}`
                     )
@@ -85,7 +80,6 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency }) => {
                 }
                 const holdingAmount = await holdings.json()
                 const expenseRatioRate = await expenseRatio.json()
-                console.log(holdingAmount)
                 setMutualFundHoldings(holdingAmount)
                 setMutualFundExpenseRatio(expenseRatioRate)
             } catch (err) {
@@ -107,11 +101,6 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency }) => {
         }
     }, [symbol, assetType])
 
-    console.log(mutualFundHoldings)
-
-    console.log(mutualFundExpenseRatio)
-
-
     const metrics = companyKeyMetrics ?? {}
     // Fund-specific fields comes from the profile request owned by App; price fields
     // such as beta and 52-week range still come from this component's metrics request.
@@ -124,10 +113,6 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency }) => {
     const { metadata } = mutualFundHoldingsAndNetAssets ?? {}
 
     const { assets, fees, risk_ratios } = mutualFundExpenseRatios?.summary ?? {}
-
-    console.log(mutualFundExpenseRatio)
-    console.log(mutualFundHoldingsAndNetAssets)
-
 
     const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta } = metrics ?? {}
     const { dividend_yield, net_assets, net_expense_ratio, holdings, portfolio_turnover } = fundMetrics ?? {}
@@ -142,7 +127,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency }) => {
         { label: "Forward P/E: ", value: formatMetrics(forwardPE) },
         { label: "Dividend Yield: ", value: `${formatMetrics(currentDividendYieldTTM)}`, suffix: getSymbol("%", currentDividendYieldTTM) },
         { label: "Beta: ", value: formatMetrics(beta) },
-        { label: "Earnings Per Share: ", value: epsTTM ? epsTTM?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A", prefix: getSymbol("$", epsTTM) },
+        { label: "Earnings Per Share: ", value: epsTTM != null ? epsTTM?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A", prefix: getSymbol("$", epsTTM) },
         {
             label: "52 Week High: ", value: formatLargePriceValue(week52High)
         },
@@ -150,13 +135,10 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency }) => {
     ]
 
     const keyMutualFundMetrics = [
-        // { label: "Dividend Yield: ", value: `${formatMetrics(convertDecimalToPercentage(dividend_yield))}`, suffix: getSymbol("%", dividend_yield) },
         { label: "Beta: ", value: formatMetrics(risk_ratios?.beta_5y) },
         { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber), prefix: getSymbol("$", convertNetAssetToNumber) },
-        { label: "Expense Ratio: ", value: `${fees?.net_expense_ratio_pct}`, suffix: getSymbol("%", fees?.net_expense_ratio_pct) },
-        // { label: "52 Week High: ", value: formatMetrics(week52High), prefix: getSymbol("$", week52High) },
-        // { label: "52 Week Low: ", value: formatMetrics(week52Low), prefix: getSymbol("$", week52Low) },
-        { label: "Holdings: ", value: metadata?.holdings_count ? metadata.holdings_count.toLocaleString("en-US") : "N/A" },
+        { label: "Expense Ratio: ", value: fees?.net_expense_ratio_pct != null ? `${fees?.net_expense_ratio_pct}` : "N/A", suffix: getSymbol("%", fees?.net_expense_ratio_pct) },
+        { label: "Holdings: ", value: metadata?.holdings_count != null ? metadata.holdings_count.toLocaleString("en-US") : "N/A" },
         { label: "Portfolio Turnover: ", value: `${formatMetrics(fees?.portfolio_turnover_pct)}`, suffix: getSymbol("%", fees?.portfolio_turnover_pct) }
     ]
 
@@ -167,7 +149,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency }) => {
         { label: "Expense Ratio: ", value: `${formatMetrics(convertDecimalToPercentage(net_expense_ratio))}`, suffix: getSymbol("%", net_expense_ratio) },
         { label: "52 Week High: ", value: formatMetrics(week52High), prefix: getSymbol("$", week52High) },
         { label: "52 Week Low: ", value: formatMetrics(week52Low), prefix: getSymbol("$", week52Low) },
-        { label: "Holdings: ", value: holdings ? holdings.length.toLocaleString("en-US") : "N/A" },
+        { label: "Holdings: ", value: holdings != null ? holdings.length.toLocaleString("en-US") : "N/A" },
         { label: "Portfolio Turnover: ", value: `${formatMetrics(convertDecimalToPercentage(portfolio_turnover))}`, suffix: getSymbol("%", portfolio_turnover) }
     ]
 

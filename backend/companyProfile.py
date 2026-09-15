@@ -8,6 +8,8 @@ load_dotenv()
 
 API_KEY= os.getenv('FINNHUB_API_KEY', "").strip()
 
+company_profile_cache = {}
+
 company_profile_bp = Blueprint("company_profile", __name__)
 
 @company_profile_bp.route("/api/company/<symbol>", methods=['GET'])
@@ -23,6 +25,9 @@ def company(symbol):
 
   # Use that symbol to get profile data
     profile_url = (f"https://finnhub.io/api/v1/stock/profile2?symbol={symbol}")
+    if symbol in company_profile_cache:
+        print("FINNHUB COMPANY PROFILE CACHE HIT", symbol)
+        return jsonify(company_profile_cache[symbol])
     profile_response = requests.get(profile_url, headers=headers, timeout=10)
 
     if profile_response.status_code != 200:
@@ -38,6 +43,8 @@ def company(symbol):
         return jsonify({
             "error": f"No company profile found for {symbol}"
         })
+    company_profile_cache[symbol] = profile_data
+
 
     return jsonify(profile_data)
 
@@ -88,16 +95,11 @@ mutual_fund_profile_cache = {}
 def fund_mutual_fund_profile_(symbol):
     symbol = symbol.strip().upper()
     if symbol in mutual_fund_profile_cache:
+        print("BUSINESS QUANT PROFILE CACHE HIT:", symbol)
+
         return jsonify(mutual_fund_profile_cache[symbol])
     search_url = (f"https://data.businessquant.com/funds/profile?ticker={symbol}&api_key={BUSINESS_QUANT_API_KEY}")
-    print("SEARCH URLLL", search_url)
     search_response = requests.get(search_url, timeout=10)
-    print(search_response)
-
-    print("Business Quant URL:", search_url)
-
-    print("Status:", search_response.status_code)
-    print("Response:", search_response.text)
 
     if not search_response.ok:
         return jsonify({
@@ -106,7 +108,6 @@ def fund_mutual_fund_profile_(symbol):
 
 
     profile_data = search_response.json()
-    print("PROFILE DATAAA", profile_data)
 
     mutual_fund_profile_cache[symbol] = profile_data
     return jsonify(profile_data)

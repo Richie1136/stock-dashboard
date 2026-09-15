@@ -2,6 +2,7 @@ from flask import jsonify, Blueprint
 from dotenv import load_dotenv
 import os
 import requests
+from wait_for_alpha_vantage import wait_for_alpha_vantage
 
 load_dotenv()
 
@@ -16,8 +17,11 @@ price_history_cache = {}
 def price_chart(symbol):
     symbol = symbol.strip().upper()
     if symbol in price_history_cache:
+        print("PRICE HISTORY CACHE HIT:", symbol)
         return jsonify(price_history_cache[symbol])
     search_url = (f"https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol={symbol}&apikey={API_KEY}")
+
+    wait_for_alpha_vantage()
     search_response = requests.get(search_url, timeout=10)
     
     if not search_response.ok:
@@ -27,9 +31,7 @@ def price_chart(symbol):
 
     search_data = search_response.json()
     if "Time Series (Daily)" not in search_data:
-        print("PRICE HISTORY FAILED")
-        print("Symbol:", symbol)
-        print("Alpha Vantage response", search_data)
+
         return jsonify({
             "error": "Alpha Vantage did not return price history",
             "details": search_data

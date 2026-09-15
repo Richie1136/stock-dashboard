@@ -8,6 +8,7 @@ load_dotenv()
 
 API_KEY= os.getenv('FINNHUB_API_KEY', "").strip()
 
+company_news_cache = {}
 
 company_news_bp = Blueprint("company_news", __name__)
 
@@ -26,7 +27,9 @@ def company_news(symbol):
 
   # Use that symbol to get profile data
     try:
-
+        if symbol in company_news_cache:
+            print("COMPANY NEWS CACHE HIT:", symbol)
+            return jsonify(company_news_cache[symbol])
         company_news_url = (f"https://finnhub.io/api/v1/company-news?symbol={symbol}&from={thirtyDaysBefore}&to={today}")
         company_news_response = requests.get(company_news_url, headers=headers, timeout=20)
     except requests.exceptions.Timeout:
@@ -42,8 +45,8 @@ def company_news(symbol):
         }), company_news_response.status_code
 
     company_news_data = company_news_response.json()
-
     if not company_news_data:
         return jsonify([])
+    company_news_cache[symbol] = company_news_data
 
     return jsonify(company_news_data)
