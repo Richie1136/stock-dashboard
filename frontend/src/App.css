@@ -73,3 +73,7 @@ button {
 .ai-summary-card {
   min-height: 260px;
 }
+
+.dashboard-main-hidden {
+  visibility: hidden;
+}

@@ -134,20 +134,13 @@ const Header = ({ selectStock, symbol }) => {
         }
 
         searchControllerRef.current = new AbortController()
-        if (suggestionsLoading) {
-            const controller = searchControllerRef.current
-            const signal = controller.signal
+        const controller = searchControllerRef.current
+        const signal = controller.signal
+        try {
+            // Enter/Search always performs an explicit search for the current input,
+            // allowing the backend to use its fallback when needed.
             const result = await getStockSuggestions(resolvedQuery, signal, true)
             searchSuggestions(result, resolvedQuery, query, normalizedQuery)
-            return
-        }
-
-        try {
-            if (suggestions.length === 0) {
-                setSearchError("No results found for this search")
-                return
-            }
-            searchSuggestions(suggestions, resolvedQuery, query, normalizedQuery)
         } catch (err) {
             console.error("Unable to search for stock:", err)
         }

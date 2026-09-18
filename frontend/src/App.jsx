@@ -10,6 +10,8 @@ import WatchList from './components/watchlist/WatchList'
 import { formatFundName } from './helperFunctions/formatFundName'
 import { apiBaseUrl } from './utils/apiConfig'
 import { ASSET_TYPES, isFundAssetType, isStockAssetType } from './constants/assetTypes'
+import TopHoldings from './components/topHoldings/TopHoldings'
+import Loading from './components/loading/Loading'
 
 function App() {
 
@@ -18,9 +20,31 @@ function App() {
   const [fundName, setFundName] = useState("")
   const [etfProfile, setEtfProfile] = useState(null)
   const [mutualFundProfile, setMutualFundProfile] = useState(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [mutualFundHoldings, setMutualFundHoldings] = useState(null)
+  const [mutualFundExpenseRatio, setMutualFundExpenseRatio] = useState(null)
+  const [companyLoading, setCompanyLoading] = useState(false)
+  const [companyError, setCompanyError] = useState("")
+
+  const [keyMetricsLoading, setKeyMetricsLoading] = useState(false)
+
+  const [priceLoading, setPriceLoading] = useState(false)
+  const [priceError, setPriceError] = useState("")
+
+  const [finishedPriceChartSymbol, setFinishedPriceChartSymbol] = useState("")
+  const [finishedKeyMetricsSymbol, setFinishedKeyMetricsSymbol] = useState("")
+  const [finishedOverviewSymbol, setFinishedOverviewSymbol] = useState("")
+  const [finishedNewsSymbol, setFinishedNewsSymbol] = useState("")
+
+  const [mutualFundLoading, setMutualFundLoading] = useState(false)
+  const [mutualFundError, setMutualFundError] = useState("")
+
+
+  const [mutualFundKeyMetricsLoading, setMutualFundKeyMetricsLoading] = useState(false)
+  const [mutualFundKeyMetricsError, setMutualFundKeyMetricsError] = useState("")
+
+  const [etfLoading, setEtfLoading] = useState(false)
+  const [etfError, setEtfError] = useState("")
   const [finishedEtfSymbol, setFinishedEtfSymbol] = useState("")
-  const [error, setError] = useState("")
   const [fundWatchList, setFundWatchList] = useState([])
   const [hasLoadedWatchlist, setHasLoadedWatchlist] = useState(false)
   const [company, setCompany] = useState(null)
@@ -29,6 +53,8 @@ function App() {
 
   const isStock = isStockAssetType(assetType)
   const isFund = isFundAssetType(assetType)
+  const isItemInWatchlist = fundWatchList.some((item) => item.symbol === symbol)
+
   console.log(isStock)
 
   useEffect(() => {
@@ -40,8 +66,8 @@ function App() {
 
     const getCompanyCard = async () => {
       try {
-        setIsLoading(true)
-        setError("")
+        setCompanyLoading(true)
+        setCompanyError("")
         const response = await fetch(`${apiBaseUrl}/company/${symbol}`,
           { signal: controller.signal }
 
@@ -55,12 +81,12 @@ function App() {
       } catch (error) {
         if (error.name !== "AbortError") {
           console.error(error)
-          setError("Unable to load company information")
-          setCompany(null)
+          setCompanyError("Unable to load company information")
         }
       } finally {
         if (!controller.signal.aborted) {
-          setIsLoading(false)
+          setCompanyLoading(false)
+          setFinishedOverviewSymbol(symbol)
         }
       }
     }
@@ -81,8 +107,8 @@ function App() {
     const fetchEtfProfile = async () => {
       try {
         setEtfProfile(null)
-        setIsLoading(true)
-        setError("")
+        setEtfLoading(true)
+        setEtfError("")
         setFinishedEtfSymbol("")
         const fundResponse = await fetch(`${apiBaseUrl}/etf/${symbol}`,
           { signal: controller.signal }
@@ -99,12 +125,13 @@ function App() {
       } catch (err) {
         if (err.name !== "AbortError") {
           console.error(err)
-          setError("Unable to load company metrics")
+          setEtfError("Unable to load company metrics")
           setEtfProfile(null)
         }
       } finally {
         if (!controller.signal.aborted) {
-          setIsLoading(false)
+          setEtfLoading(false)
+          setFinishedOverviewSymbol(symbol)
           // Keep the loading state visible briefly so cards do not flash between states.
           delayTimer = setTimeout(() => {
             setFinishedEtfSymbol(symbol)
@@ -137,8 +164,8 @@ function App() {
     const fetchMutualFundProfile = async () => {
       try {
         setMutualFundProfile(null)
-        setIsLoading(true)
-        setError("")
+        setMutualFundLoading(true)
+        setMutualFundError("")
         setFinishedEtfSymbol("")
         const fundResponse = await fetch(`${apiBaseUrl}/mutual-fund/${symbol}`,
           { signal: controller.signal }
@@ -155,12 +182,13 @@ function App() {
       } catch (err) {
         if (err.name !== "AbortError") {
           console.error(err)
-          setError("Unable to load company metrics")
+          setMutualFundError("Unable to load company metrics")
           setMutualFundProfile(null)
         }
       } finally {
         if (!controller.signal.aborted) {
-          setIsLoading(false)
+          setMutualFundLoading(false)
+          setFinishedOverviewSymbol(symbol)
           // Keep the loading state visible briefly so cards do not flash between states.
           delayTimer = setTimeout(() => {
             setFinishedEtfSymbol(symbol)
@@ -176,6 +204,7 @@ function App() {
     }
   }, [symbol, assetType])
 
+
   useEffect(() => {
     // Do not overwrite a saved list with the initial empty state before hydration finishes.
     if (hasLoadedWatchlist) {
@@ -186,17 +215,26 @@ function App() {
   useEffect(() => {
     // Hydrate once on startup; subsequent watchlist changes are persisted above.
     const storedValue = JSON.parse(localStorage.getItem("WatchList"))
+    const storedFund = JSON.parse(localStorage.getItem("fundData"))
     if (storedValue !== null) {
       setFundWatchList(storedValue)
+    }
+    if (storedFund !== null) {
+      selectStock(storedFund)
     }
     setHasLoadedWatchlist(true)
   }, [])
 
-  console.log(mutualFundProfile)
-
   const updateFundWatchList = () => {
     // Prevent empty and duplicate entries from being added to the watchlist.
-    if (!symbol || fundWatchList.some((fund) => fund.symbol === symbol)) return
+    if (!symbol) return
+
+    if (isItemInWatchlist) {
+      const updatedWatchlist = fundWatchList?.filter((item) => item.symbol !== symbol)
+      setFundWatchList(updatedWatchlist)
+      return
+
+    }
 
     setFundWatchList([...Object.values(fundWatchList), { "symbol": symbol, "type": assetType, "description": formatFundName(fundName) }])
   }
@@ -205,6 +243,7 @@ function App() {
     setSymbol(selectedStock.symbol.toUpperCase())
     setAssetType(selectedStock.type)
     setFundName(selectedStock.description)
+    localStorage.setItem("fundData", JSON.stringify(selectedStock))
   }
 
   const isReady = Boolean(symbol) && (assetType !== ASSET_TYPES.ETP || finishedEtfSymbol === symbol);
@@ -224,8 +263,8 @@ function App() {
 
     const fetchPriceCard = async () => {
       try {
-        setError("")
-        setIsLoading(true)
+        setPriceError("")
+        setPriceLoading(true)
         const response = await fetch(`${apiBaseUrl}/price-history/${symbol}`, {
           signal: controller.signal
         })
@@ -246,12 +285,13 @@ function App() {
       } catch (err) {
         if (err.name !== 'AbortError') {
           setCompanyDailyPrice(null)
-          setError("Unable to load chart")
+          setPriceError("Unable to load chart")
           console.error(err)
         }
       } finally {
         if (!controller.signal.aborted) {
-          setIsLoading(false)
+          setPriceLoading(false)
+          setFinishedPriceChartSymbol(symbol)
         }
       }
     }
@@ -263,22 +303,75 @@ function App() {
 
   }, [symbol, assetType, isReady])
 
-  console.log(company)
-  console.log(mutualFundProfile)
+  useEffect(() => {
+    if (!symbol || assetType !== ASSET_TYPES.MUTUAL_FUND) return
+
+    const controller = new AbortController()
+
+    const getMutualFundsKeyMetrics = async () => {
+      try {
+        setMutualFundKeyMetricsLoading(true)
+        setMutualFundKeyMetricsError("")
+
+        const response = await Promise.all([
+          fetch(`${apiBaseUrl}/mutual-fund/holdings/${symbol}`, { signal: controller.signal }),
+          fetch(`${apiBaseUrl}/mutual-fund/expense-ratio/${symbol}`, { signal: controller.signal })
+        ])
+        const [holdings, expenseRatio] = response
+
+        if (!holdings.ok) {
+          throw new Error(`Metrics request failed with status ${holdings.status}`
+          )
+        }
+        if (!expenseRatio.ok) {
+          throw new Error(`Metrics request failed with status ${expenseRatio.status}`
+          )
+        }
+        const holdingAmount = await holdings.json()
+        const expenseRatioRate = await expenseRatio.json()
+        setMutualFundHoldings(holdingAmount)
+        setMutualFundExpenseRatio(expenseRatioRate)
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error(err)
+          setMutualFundKeyMetricsError("Unable to load company metrics")
+          setMutualFundHoldings(null)
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setFinishedKeyMetricsSymbol(symbol)
+          setMutualFundKeyMetricsLoading(false)
+        }
+      }
+    }
+    getMutualFundsKeyMetrics()
+
+    return () => {
+      controller.abort()
+    }
+  }, [symbol, assetType])
+
+  const companyLoader = isStock ? companyLoading : assetType === ASSET_TYPES.MUTUAL_FUND ? mutualFundLoading : etfLoading
+  const errorLoader = isStock ? companyError : assetType === ASSET_TYPES.MUTUAL_FUND ? mutualFundError : etfError
+
+  const dashboardReady = assetType === ASSET_TYPES.MUTUAL_FUND ? finishedOverviewSymbol === symbol && finishedKeyMetricsSymbol === symbol && finishedPriceChartSymbol === symbol : finishedKeyMetricsSymbol === symbol && finishedOverviewSymbol === symbol && finishedPriceChartSymbol === symbol && finishedNewsSymbol === symbol
+
+  const dashboardLoading = Boolean(symbol) && !dashboardReady
 
   return (
     <section className="app">
       <Header selectStock={selectStock} symbol={symbol} />
       <div className='dashboard'>
         <WatchList setFundWatchList={setFundWatchList} symbol={symbol} fundWatchList={fundWatchList} selectStock={selectStock} />
-        <main className='dashboard-main'>
+        {dashboardLoading && <Loading />}
+        <main className={`dashboard-main ${dashboardLoading ? "dashboard-main-hidden" : ""}`}>
           <div className='top-row'>
-            <CompanyCard company={company} isLoading={isLoading} error={error} updateWatchList={updateFundWatchList} symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} mutualFundProfile={mutualFundProfile} />
-            <KeyMetrics currency={company?.currency} symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
+            <CompanyCard isItemInWatchlist={isItemInWatchlist} company={company} isLoading={companyLoader} error={errorLoader} updateWatchList={updateFundWatchList} symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} mutualFundProfile={mutualFundProfile} />
+            <KeyMetrics setFinishedKeyMetricsSymbol={setFinishedKeyMetricsSymbol} setKeyMetricsLoading={setKeyMetricsLoading} mutualFundHoldings={mutualFundHoldings} mutualFundExpenseRatio={mutualFundExpenseRatio} isLoading={mutualFundKeyMetricsLoading} error={mutualFundKeyMetricsError} currency={company?.currency} symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
           </div>
           <div className='bottom-row'>
-            <PriceChart setCompanyDailyPrice={setCompanyDailyPrice} companyDailyPrice={companyDailyPrice} symbol={symbol} assetType={assetType} finishedEtfSymbol={finishedEtfSymbol} />
-            <NewsCard symbol={symbol} />
+            <PriceChart isLoading={priceLoading} error={priceError} setCompanyDailyPrice={setCompanyDailyPrice} companyDailyPrice={companyDailyPrice} symbol={symbol} assetType={assetType} finishedEtfSymbol={finishedEtfSymbol} />
+            {assetType === ASSET_TYPES.MUTUAL_FUND ? <TopHoldings symbol={symbol} mutualFundHoldings={mutualFundHoldings} /> : <NewsCard symbol={symbol} setFinishedNewsSymbol={setFinishedNewsSymbol} />}
           </div>
           <AISummaryCard />
         </main>

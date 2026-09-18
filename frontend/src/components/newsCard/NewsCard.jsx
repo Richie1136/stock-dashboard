@@ -5,7 +5,7 @@ import { apiBaseUrl } from '../../utils/apiConfig'
 import { formatNewsDate } from '../../helperFunctions/formatNewsDate'
 import { formatNewsSummary } from '../../helperFunctions/formatNewsSummary'
 
-const NewsCard = ({ symbol }) => {
+const NewsCard = ({ symbol, setFinishedNewsSymbol }) => {
     const [companyNews, setCompanyNews] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
@@ -36,6 +36,7 @@ const NewsCard = ({ symbol }) => {
             } finally {
                 if (!controller.signal.aborted) {
                     setIsLoading(false)
+                    setFinishedNewsSymbol(symbol)
                 }
             }
         }
@@ -43,7 +44,7 @@ const NewsCard = ({ symbol }) => {
         return () => {
             controller.abort()
         }
-    }, [symbol])
+    }, [symbol, setFinishedNewsSymbol])
 
     const formatNewsSource = (source) => {
         if (!source) return ""

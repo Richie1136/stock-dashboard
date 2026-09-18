@@ -1,13 +1,11 @@
-import { useState, useEffect } from 'react'
 import { formatIPOLayout } from '../../helperFunctions/formatIpoLayout'
 import './CompanyCard.css'
 import Loading from '../loading/Loading'
 import { formatFundName } from '../../helperFunctions/formatFundName'
 import { FaIndustry, FaBuilding, FaCalendarAlt, FaLink } from 'react-icons/fa'
-import { apiBaseUrl } from '../../utils/apiConfig'
 import { ASSET_TYPES, isStockAssetType } from '../../constants/assetTypes'
 
-const CompanyCard = ({ symbol, isLoading, error, company, assetType, fundName, etfProfile, mutualFundProfile, updateWatchList }) => {
+const CompanyCard = ({ symbol, isLoading, error, company, isItemInWatchlist, assetType, fundName, etfProfile, mutualFundProfile, updateWatchList }) => {
 
     const isStock = isStockAssetType(assetType)
 
@@ -15,6 +13,15 @@ const CompanyCard = ({ symbol, isLoading, error, company, assetType, fundName, e
         return (
             <div className="card company-card">
                 <Loading />
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="card company-card">
+                <h3>{isStock ? "Company Overview" : "Fund Overview"}</h3>
+                <p>{error}</p>
             </div>
         )
     }
@@ -55,7 +62,7 @@ const CompanyCard = ({ symbol, isLoading, error, company, assetType, fundName, e
                     <p>Asset Type: {assetType === "ETP" ? "ETF" : "Mutual Fund"}</p>
                     {assetType === "ETP" && <p>Leveraged: {etfProfile?.leveraged}</p>}
                     <div className='company-actions'>
-                        <button onClick={updateWatchList}>Add To Watchlist</button>
+                        <button onClick={updateWatchList}>{isItemInWatchlist ? "Remove From Watchlist" : "Add To Watchlist"}</button>
                     </div>
                 </>
             ) : (
@@ -93,7 +100,7 @@ const CompanyCard = ({ symbol, isLoading, error, company, assetType, fundName, e
                             <FaLink />
                             {weburl && <a href={weburl} target='_blank' rel='noopener noreferrer'>Website</a>}
                         </div>
-                        <button onClick={updateWatchList}>Add To Watchlist</button>
+                        <button onClick={updateWatchList}>{isItemInWatchlist ? "Remove From Watchlist" : "Add To Watchlist"}</button>
                     </div>
                 </>
             )}
