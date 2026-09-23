@@ -1,10 +1,17 @@
+import { ASSET_TYPES } from '../../constants/assetTypes'
 import './TopHoldings.css'
 
-const TopHoldings = ({ mutualFundHoldings }) => {
+const TopHoldings = ({ holdings, assetType }) => {
 
-    const topTenHoldings = mutualFundHoldings?.['data']?.slice(0, 10) ?? []
+    const holdingData = assetType === ASSET_TYPES.MUTUAL_FUND ? holdings?.data : holdings?.holdings
 
-    const topTenPercentage = topTenHoldings.reduce((total, item) => total + item.weight_pct, 0)
+    const topTenHoldings = holdingData?.slice(0, 10) ?? []
+
+    const topTenPercentage = topTenHoldings.reduce((total, item) => {
+        const weight = assetType === ASSET_TYPES.MUTUAL_FUND ? item.weight_pct : item.weight
+        const isEtf = assetType === ASSET_TYPES.ETP ? Number(weight) * 100 : weight
+        return total + Number(isEtf)
+    }, 0)
 
     return (
         <div className='card top-holdings-card'>
@@ -13,21 +20,25 @@ const TopHoldings = ({ mutualFundHoldings }) => {
 
             <div className='top-holdings-list'>
                 {topTenHoldings.map((item, index) => {
-
+                    const ticker = assetType === ASSET_TYPES.MUTUAL_FUND ? item.issuer_ticker : item.symbol
+                    const name = assetType === ASSET_TYPES.MUTUAL_FUND ? item.issuer_name : item.description
+                    const weight = assetType === ASSET_TYPES.MUTUAL_FUND ? item.weight_pct : item.weight
+                    const isEtf = assetType === ASSET_TYPES.ETP ? Number(weight) * 100 : weight
                     const rank = index + 1
                     return (
-                        <div className='top-holding-row' key={`${item.issuer_ticker}-${index}`}>
+                        <div className='top-holding-row' key={`${ticker}-${index}`}>
                             <span className='holding-rank'>{rank}.</span>
                             <div className='holding-info'>
                                 <span className='holding-ticker'>
-                                    {item.issuer_ticker}
+                                    {ticker}
                                 </span>
                                 <span className='holding-name'>
-                                    {item.issuer_name}
+                                    {name}
                                 </span>
                             </div>
                             <span className='holding-weight'>
-                                {item.weight_pct.toFixed(2)}%
+                                { }
+                                {isEtf?.toFixed(2)}%
                             </span>
                         </div>
                     )

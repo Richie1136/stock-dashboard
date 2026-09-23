@@ -54,7 +54,7 @@ const PriceChart = ({ symbol, assetType, finishedEtfSymbol, companyDailyPrice, i
         }
     }
 
-    if (isLoading || (assetType === ASSET_TYPES.ETP && finishedEtfSymbol !== symbol)) {
+    if (isLoading) {
         return (
             <div className="card chart-card">
                 <h2>Price Chart</h2>

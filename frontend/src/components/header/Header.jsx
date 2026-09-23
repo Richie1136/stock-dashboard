@@ -56,11 +56,9 @@ const Header = ({ selectStock, symbol }) => {
                 throw new Error(`Search failed with status ${response.status}`)
             }
             const data = await response.json()
-            console.log(data)
 
             // The dashboard currently supports US-listed stocks and ETPs only.
             const supportedAssets = data?.result?.filter((stock) => {
-                console.log()
                 if (!isSupportedAssetType(stock.type)) {
                     console.log("Unknown Finnhub type:", stock.type, stock)
                 }
