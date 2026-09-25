@@ -2,6 +2,8 @@ from flask import jsonify, Blueprint
 from dotenv import load_dotenv
 import os
 import requests
+from wait_for_alpha_vantage import wait_for_alpha_vantage
+
 
 
 load_dotenv()
@@ -63,6 +65,7 @@ def fund_etf_profile(symbol):
     if symbol in etf_profile_cache:
         return jsonify(etf_profile_cache[symbol])
     search_url = (f"https://www.alphavantage.co/query?function=ETF_PROFILE&symbol={symbol}&apikey={VANTAGE_API_KEY}")
+    wait_for_alpha_vantage()
     search_response = requests.get(search_url, timeout=10)
 
     if not search_response.ok:

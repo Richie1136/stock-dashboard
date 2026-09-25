@@ -1,7 +1,7 @@
 import { ASSET_TYPES } from '../../constants/assetTypes'
 import './TopHoldings.css'
 
-const TopHoldings = ({ holdings, assetType }) => {
+const TopHoldings = ({ holdings, assetType, mutualFundTotalHoldings, totalAmountOfHoldings }) => {
 
     const holdingData = assetType === ASSET_TYPES.MUTUAL_FUND ? holdings?.data : holdings?.holdings
 
@@ -15,7 +15,7 @@ const TopHoldings = ({ holdings, assetType }) => {
 
     return (
         <div className='card top-holdings-card'>
-            <h2>Top Holdings</h2>
+            <h2>Top Holdings ({totalAmountOfHoldings?.toLocaleString("en-US")})</h2>
             <span className='total-portfolio-percentage'>{topTenPercentage.toFixed(2)}% of Total Portfolio</span>
 
             <div className='top-holdings-list'>

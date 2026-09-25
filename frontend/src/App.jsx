@@ -20,7 +20,7 @@ function App() {
   const [fundName, setFundName] = useState("")
   const [etfProfile, setEtfProfile] = useState(null)
   const [mutualFundProfile, setMutualFundProfile] = useState(null)
-  const [mutualFundHoldings, setMutualFundHoldings] = useState(null)
+  const [fundHoldings, setFundHoldings] = useState(null)
   const [mutualFundExpenseRatio, setMutualFundExpenseRatio] = useState(null)
   const [companyLoading, setCompanyLoading] = useState(false)
   const [companyError, setCompanyError] = useState("")
@@ -134,6 +134,8 @@ function App() {
       controller.abort()
     }
   }, [symbol, assetType])
+
+  console.log(etfProfile)
 
   // Mutual Fund profile data must finish loading before dependent cards request their data.
   useEffect(() => {
@@ -273,6 +275,34 @@ function App() {
   }, [symbol, assetType, isReady])
 
   useEffect(() => {
+    if (!symbol || isStock) return
+    const controller = new AbortController()
+
+    const getFundHoldings = async () => {
+      try {
+        const response = await fetch(`${apiBaseUrl}/fund/holdings/${symbol}`, { signal: controller.signal })
+        const data = await response.json()
+        setFundHoldings(data)
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error(err)
+          setMutualFundKeyMetricsError("Unable to load company metrics")
+          setFundHoldings(null)
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setFinishedKeyMetricsSymbol(symbol)
+          setMutualFundKeyMetricsLoading(false)
+        }
+      }
+    }
+    getFundHoldings()
+    return () => {
+      controller.abort()
+    }
+  }, [symbol, assetType])
+
+  useEffect(() => {
     if (!symbol || assetType !== ASSET_TYPES.MUTUAL_FUND) return
 
     const controller = new AbortController()
@@ -282,29 +312,18 @@ function App() {
         setMutualFundKeyMetricsLoading(true)
         setMutualFundKeyMetricsError("")
 
-        const response = await Promise.all([
-          fetch(`${apiBaseUrl}/mutual-fund/holdings/${symbol}`, { signal: controller.signal }),
-          fetch(`${apiBaseUrl}/mutual-fund/expense-ratio/${symbol}`, { signal: controller.signal })
-        ])
-        const [holdings, expenseRatio] = response
+        const response = await fetch(`${apiBaseUrl}/mutual-fund/expense-ratio/${symbol}`, { signal: controller.signal })
 
-        if (!holdings.ok) {
-          throw new Error(`Metrics request failed with status ${holdings.status}`
+        if (!response.ok) {
+          throw new Error(`Metrics request failed with status ${response.status}`
           )
         }
-        if (!expenseRatio.ok) {
-          throw new Error(`Metrics request failed with status ${expenseRatio.status}`
-          )
-        }
-        const holdingAmount = await holdings.json()
-        const expenseRatioRate = await expenseRatio.json()
-        setMutualFundHoldings(holdingAmount)
+        const expenseRatioRate = await response.json()
         setMutualFundExpenseRatio(expenseRatioRate)
       } catch (err) {
         if (err.name !== "AbortError") {
           console.error(err)
           setMutualFundKeyMetricsError("Unable to load company metrics")
-          setMutualFundHoldings(null)
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -327,7 +346,13 @@ function App() {
 
   const dashboardLoading = Boolean(symbol) && !dashboardReady
 
-  const assetTypeHoldings = assetType === ASSET_TYPES.MUTUAL_FUND ? mutualFundHoldings : etfProfile
+  const assetTypeHoldings = assetType === ASSET_TYPES.MUTUAL_FUND ? fundHoldings : etfProfile
+
+  const totalAmountOfHoldings = fundHoldings?.metadata?.holdings_count
+
+  // const assetTypeTotalHoldings = assetType === ASSET_TYPES.MUTUAL_FUND && fundHoldings?.metadata.holdings_count
+
+  // console.log(fundHoldings)
 
   console.log({
     symbol,
@@ -337,6 +362,15 @@ function App() {
     finishedNewsSymbol,
     dashboardReady
   })
+
+  const dailyPrices = companyDailyPrice?.['Time Series (Daily)'] ?? {}
+
+  const chartData = Object.entries(dailyPrices).map(([date, prices]) => ({
+    date: date,
+    close: Number(prices["4. close"])
+  }))
+
+  const grabLastDaysClosingPrice = chartData[chartData.length - 1]?.close
 
   return (
     <section className="app">
@@ -352,11 +386,11 @@ function App() {
           <main className={`dashboard-main ${dashboardLoading ? "dashboard-main-hidden" : ""}`}>
             <div className='top-row'>
               <CompanyCard isItemInWatchlist={isItemInWatchlist} company={company} isLoading={companyLoader} error={errorLoader} updateWatchList={updateFundWatchList} symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} mutualFundProfile={mutualFundProfile} />
-              <KeyMetrics setFinishedKeyMetricsSymbol={setFinishedKeyMetricsSymbol} setKeyMetricsLoading={setKeyMetricsLoading} mutualFundHoldings={mutualFundHoldings} mutualFundExpenseRatio={mutualFundExpenseRatio} isLoading={mutualFundKeyMetricsLoading} error={mutualFundKeyMetricsError} currency={company?.currency} symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
+              <KeyMetrics grabLastDaysClosingPrice={grabLastDaysClosingPrice} setFinishedKeyMetricsSymbol={setFinishedKeyMetricsSymbol} fundHoldings={fundHoldings} setKeyMetricsLoading={setKeyMetricsLoading} totalAmountOfHoldings={totalAmountOfHoldings} mutualFundExpenseRatio={mutualFundExpenseRatio} isLoading={mutualFundKeyMetricsLoading} error={mutualFundKeyMetricsError} currency={company?.currency} symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
             </div>
             <div className='bottom-row'>
               <PriceChart isLoading={priceLoading} error={priceError} setCompanyDailyPrice={setCompanyDailyPrice} companyDailyPrice={companyDailyPrice} symbol={symbol} assetType={assetType} />
-              {assetType === ASSET_TYPES.MUTUAL_FUND || assetType === ASSET_TYPES.ETP ? <TopHoldings symbol={symbol} holdings={assetTypeHoldings} assetType={assetType} /> : <NewsCard symbol={symbol} setFinishedNewsSymbol={setFinishedNewsSymbol} />}
+              {assetType === ASSET_TYPES.MUTUAL_FUND || assetType === ASSET_TYPES.ETP ? <TopHoldings symbol={symbol} holdings={assetTypeHoldings} assetType={assetType} totalAmountOfHoldings={totalAmountOfHoldings} /> : <NewsCard symbol={symbol} setFinishedNewsSymbol={setFinishedNewsSymbol} />}
             </div>
             <AISummaryCard />
           </main>

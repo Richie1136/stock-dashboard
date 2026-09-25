@@ -47,22 +47,24 @@ def key_metrics(symbol):
     return jsonify(metrics)
 
 
-mutual_fund_holdings_bp = Blueprint("mutual_fund_holdings", __name__)
+
+
+fund_holdings_bp = Blueprint("fund_holdings", __name__)
 
 BUSINESS_QUANT_API_KEY= os.getenv('BUSINESS_QUANT_API_KEY', "").strip()
 
-mutual_fund_holdings_cache = {}
+fund_holdings_cache = {}
 
-@mutual_fund_holdings_bp.route("/api/mutual-fund/holdings/<symbol>", methods=['GET'])
-def mutual_fund_holdings(symbol):
+@fund_holdings_bp.route("/api/fund/holdings/<symbol>", methods=['GET'])
+def fund_holdings(symbol):
     symbol = symbol.strip().upper()
 
     if not symbol:
         return jsonify({"error": "A stock symbol is required"}), 400
         
-    if symbol in mutual_fund_holdings_cache:
+    if symbol in fund_holdings_cache:
         print("BUSINESS QUANT HOLDINGS CACHE HIT:", symbol)
-        return jsonify(mutual_fund_holdings_cache[symbol])
+        return jsonify(fund_holdings_cache[symbol])
     key_metrics_holdings_url = (f"https://data.businessquant.com/funds/holdings?ticker={symbol}&api_key={BUSINESS_QUANT_API_KEY}")
     key_metrics_holdings_response = requests.get(key_metrics_holdings_url, timeout=10)
 
@@ -75,9 +77,45 @@ def mutual_fund_holdings(symbol):
     
     key_metrics_holdings_data = key_metrics_holdings_response.json()
 
-    mutual_fund_holdings_cache[symbol] = key_metrics_holdings_data
+    fund_holdings_cache[symbol] = key_metrics_holdings_data
 
     return jsonify(key_metrics_holdings_data)
+
+fund_calculate_dividend_yield_bp = Blueprint("calculate_dividend_yield", __name__)
+
+BUSINESS_QUANT_API_KEY= os.getenv('BUSINESS_QUANT_API_KEY', "").strip()
+
+fund_calculate_dividend_yield_cache = {}
+
+@fund_calculate_dividend_yield_bp.route("/api/dividends/<symbol>", methods=['GET'])
+def fund_calculate_dividend_yield(symbol):
+    symbol = symbol.strip().upper()
+
+    if not symbol:
+        return jsonify({"error": "A fund symbol is required"}), 400
+        
+    if symbol in fund_calculate_dividend_yield_cache:
+        print("BUSINESS QUANT HOLDINGS CACHE HIT:", symbol)
+        return jsonify(fund_calculate_dividend_yield_cache[symbol])
+
+    fund_calculate_dividend_yield_url = (f"https://data.businessquant.com/dividends?ticker={symbol}&api_key={BUSINESS_QUANT_API_KEY}")
+    fund_calculate_dividend_yield_response = requests.get(fund_calculate_dividend_yield_url, timeout=10)
+
+    if not fund_calculate_dividend_yield_response.ok:
+        return jsonify({
+            "error": "Profile data request failed",
+            "details": fund_calculate_dividend_yield_response.text
+
+        }), fund_calculate_dividend_yield_response.status_code 
+    
+    fund_calculate_dividend_yield_data = fund_calculate_dividend_yield_response.json()
+
+    ttm_dividend = fund_calculate_dividend_yield_data['metadata'].get("ttmdividend")
+
+    fund_calculate_dividend_yield_cache[symbol] = ttm_dividend
+
+    return jsonify(ttm_dividend)
+
 
 
 mutual_fund_expense_ratio_bp = Blueprint("mutual_fund_expense_ratio", __name__)
