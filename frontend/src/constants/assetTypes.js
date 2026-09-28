@@ -3,13 +3,15 @@ export const ASSET_TYPES = Object.freeze({
     ADR: "ADR",
     NY_REGISTERED_SHARES: "NY Reg Shrs",
     ETP: "ETP",
-    MUTUAL_FUND: "Mutual Fund"
+    MUTUAL_FUND: "Mutual Fund",
+    REIT: "REIT"
 })
 
 const STOCK_ASSET_TYPES = new Set([
     ASSET_TYPES.COMMON_STOCK,
     ASSET_TYPES.ADR,
     ASSET_TYPES.NY_REGISTERED_SHARES,
+    ASSET_TYPES.REIT
 ])
 
 const SUPPORTED_ASSET_TYPES = new Set([

@@ -4,9 +4,8 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import Loading from '../loading/Loading'
 import { CustomTooltip } from './customTooltip'
 import { formatLargePriceValue } from '../../helperFunctions/formatLargePriceValue'
-import { ASSET_TYPES } from '../../constants/assetTypes'
 
-const PriceChart = ({ symbol, assetType, finishedEtfSymbol, companyDailyPrice, isLoading, error }) => {
+const PriceChart = ({ symbol, companyDailyPrice, isLoading, error }) => {
 
     const [selectedTimeline, setSelectedTimeline] = useState("ALL")
 

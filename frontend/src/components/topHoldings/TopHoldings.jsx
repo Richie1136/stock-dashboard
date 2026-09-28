@@ -1,7 +1,7 @@
 import { ASSET_TYPES } from '../../constants/assetTypes'
 import './TopHoldings.css'
 
-const TopHoldings = ({ holdings, assetType, mutualFundTotalHoldings, totalAmountOfHoldings }) => {
+const TopHoldings = ({ holdings, assetType, totalAmountOfHoldings }) => {
 
     const holdingData = assetType === ASSET_TYPES.MUTUAL_FUND ? holdings?.data : holdings?.holdings
 
@@ -37,7 +37,6 @@ const TopHoldings = ({ holdings, assetType, mutualFundTotalHoldings, totalAmount
                                 </span>
                             </div>
                             <span className='holding-weight'>
-                                { }
                                 {isEtf?.toFixed(2)}%
                             </span>
                         </div>

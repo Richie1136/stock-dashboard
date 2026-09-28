@@ -58,9 +58,9 @@ const CompanyCard = ({ symbol, isLoading, error, company, isItemInWatchlist, ass
                     <h3>Fund Overview</h3>
                     <h2>{displayFundName}</h2>
                     <p>Ticker: {symbol}</p>
-                    <p>Inception Date: {assetType === "ETP" ? formatIPOLayout(etfProfile?.inception_date) : formatIPOLayout(mutualFundProfile?.firstpricedate)}</p>
-                    <p>Asset Type: {assetType === "ETP" ? "ETF" : "Mutual Fund"}</p>
-                    {assetType === "ETP" && <p>Leveraged: {etfProfile?.leveraged}</p>}
+                    <p>Inception Date: {assetType === ASSET_TYPES.ETP ? formatIPOLayout(etfProfile?.inception_date) : formatIPOLayout(mutualFundProfile?.firstpricedate)}</p>
+                    <p>Asset Type: {assetType === ASSET_TYPES.ETP ? "ETF" : "Mutual Fund"}</p>
+                    {assetType === ASSET_TYPES.ETP && <p>Leveraged: {etfProfile?.leveraged}</p>}
                     <div className='company-actions'>
                         <button onClick={updateWatchList}>{isItemInWatchlist ? "Remove From Watchlist" : "Add To Watchlist"}</button>
                     </div>

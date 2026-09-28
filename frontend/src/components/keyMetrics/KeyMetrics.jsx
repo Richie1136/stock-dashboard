@@ -6,20 +6,19 @@ import { formatLargePriceValue, formatMetrics, formatMarketCap, formatNetAssets,
 import { apiBaseUrl } from '../../utils/apiConfig'
 import { ASSET_TYPES, isStockAssetType } from '../../constants/assetTypes'
 
-const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, currency, totalAmountOfHoldings, setKeyMetricsLoading, mutualFundHoldings, setFinishedKeyMetricsSymbol, mutualFundExpenseRatio, isLoading, error }) => {
+const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, currency, totalAmountOfHoldings, setFinishedMutualFundExpenseRatioSymbol, setFinishedKeyMetricsSymbol, setFinishedKeyMetricsDividend, isLoading, error }) => {
 
     const [companyKeyMetrics, setCompanyKeyMetrics] = useState(null)
     const [companyMetricsLoading, setCompanyMetricsLoading] = useState(false)
     const [companyMetricsError, setCompanyMetricsError] = useState("")
     const [fundDividendYield, setFundDividendYield] = useState(null)
-    const [fundDividendYieldLoading, setFundDividendYieldLoading] = useState(false)
-    const [fundDividendYieldError, setFundDividendYieldError] = useState("")
+    const [mutualFundExpenseRatio, setMutualFundExpenseRatio] = useState(null)
+    const [mutualFundExpenseRatioLoading, setMutualFundExpenseRatioLoading] = useState(false)
+    const [mutualFundExpenseRatioSymbol, setMutualFundExpenseRatioSymbol] = useState("")
+    const [mutualFundExpenseRatioError, setMutualFundExpenseRatioError] = useState("")
+
 
     const isStock = isStockAssetType(assetType)
-
-    console.log(etfProfile)
-
-    console.log(grabLastDaysClosingPrice)
 
     useEffect(() => {
         if (!symbol || (assetType !== ASSET_TYPES.ETP && !isStock)) return
@@ -29,7 +28,6 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
         const getCompanyKeyMetrics = async () => {
             try {
                 setCompanyMetricsLoading(true)
-                setKeyMetricsLoading(true)
                 setCompanyMetricsError("")
                 const response = await fetch(`${apiBaseUrl}/metrics/${symbol}`,
                     { signal: controller.signal }
@@ -49,7 +47,6 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
             } finally {
                 if (!controller.signal.aborted) {
                     setCompanyMetricsLoading(false)
-                    setKeyMetricsLoading(false)
                     setFinishedKeyMetricsSymbol(symbol)
                 }
             }
@@ -59,18 +56,53 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
         return () => {
             controller.abort()
         }
-    }, [symbol, assetType, setKeyMetricsLoading, setFinishedKeyMetricsSymbol])
+    }, [symbol, assetType, setFinishedKeyMetricsSymbol])
 
     useEffect(() => {
-        if (!symbol || (assetType === isStock)) return
+        if (!symbol || assetType !== ASSET_TYPES.MUTUAL_FUND) return
+
+        const controller = new AbortController()
+
+        const getMutualFundsExpenseRatio = async () => {
+            try {
+                setMutualFundExpenseRatioLoading(true)
+                setMutualFundExpenseRatioError("")
+
+                const response = await fetch(`${apiBaseUrl}/mutual-fund/expense-ratio/${symbol}`, { signal: controller.signal })
+
+                if (!response.ok) {
+                    throw new Error(`Metrics request failed with status ${response.status}`
+                    )
+                }
+                const expenseRatioRate = await response.json()
+                setMutualFundExpenseRatio(expenseRatioRate)
+            } catch (err) {
+                if (err.name !== "AbortError") {
+                    console.error(err)
+                    setMutualFundExpenseRatioError("Unable to load Muutal Fund expense ratio data")
+                }
+            } finally {
+                if (!controller.signal.aborted) {
+                    setFinishedMutualFundExpenseRatioSymbol(symbol)
+                    setMutualFundExpenseRatioLoading(false)
+                }
+            }
+        }
+        getMutualFundsExpenseRatio()
+
+        return () => {
+            controller.abort()
+        }
+    }, [symbol, assetType])
+
+    useEffect(() => {
+        if (!symbol || (isStock)) return
 
         const controller = new AbortController()
 
         const getFundsDividendYield = async () => {
             try {
                 setCompanyMetricsLoading(true)
-                setFundDividendYieldLoading(true)
-                setFundDividendYieldError("")
                 const response = await fetch(`${apiBaseUrl}/dividends/${symbol}`,
                     { signal: controller.signal }
                 )
@@ -83,14 +115,11 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
             } catch (err) {
                 if (err.name !== "AbortError") {
                     console.error(err)
-                    setFundDividendYieldError("Unable to load company metrics")
                     setFundDividendYield(null)
                 }
             } finally {
                 if (!controller.signal.aborted) {
-                    setFundDividendYieldLoading(false)
-                    setKeyMetricsLoading(false)
-                    setFinishedKeyMetricsSymbol(symbol)
+                    setFinishedKeyMetricsDividend(symbol)
                 }
             }
         }
@@ -99,7 +128,7 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
         return () => {
             controller.abort()
         }
-    }, [symbol, assetType, setKeyMetricsLoading, setFinishedKeyMetricsSymbol])
+    }, [symbol, assetType, setFinishedKeyMetricsDividend])
 
     const fundDistributionYield = (fundDividendYield / grabLastDaysClosingPrice) * 100
 
@@ -108,26 +137,18 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
     // such as beta and 52-week range still come from this component's metrics request.
     const fundMetrics = etfProfile ?? {}
 
-    const mutualFundHoldingsAndNetAssets = mutualFundHoldings ?? {}
-
     const mutualFundExpenseRatios = mutualFundExpenseRatio ?? {}
 
-    const { metadata } = mutualFundHoldingsAndNetAssets ?? {}
-
     const { assets, fees, risk_ratios } = mutualFundExpenseRatios?.summary ?? {}
-
-    console.log(metadata)
 
     const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta } = metrics ?? {}
     const { net_assets, net_expense_ratio, portfolio_turnover } = fundMetrics ?? {}
 
-    console.log(fundMetrics)
-
     // The ETF provider serializes net assets as a numeric string.
-    const convertNetAssetToNumber = net_assets !== undefined && net_assets !== null && assetType === "ETP" ? Number(net_assets) : assetType === "Mutual Fund" ? Number(assets?.net_assets_usd) : "N/A"
+    const convertNetAssetToNumber = net_assets !== undefined && net_assets !== null && assetType === ASSET_TYPES.ETP ? Number(net_assets) : assetType === ASSET_TYPES.MUTUAL_FUND ? Number(assets?.net_assets_usd) : "N/A"
 
     // Stocks data.
-    const keyMetricsData = [
+    const keyMetricsStockData = [
         { label: "Market Cap: ", value: formatMarketCap(marketCapitalization, currency), prefix: getSymbol("$", marketCapitalization) },
         { label: "P/E Ratio: ", value: formatMetrics(peTTM) },
         { label: "Forward P/E: ", value: formatMetrics(forwardPE) },
@@ -142,7 +163,7 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
 
     // Mutual Fund Data
 
-    const keyMutualFundMetrics = [
+    const keyMetricsMutualFund = [
         { label: "Beta: ", value: formatMetrics(risk_ratios?.beta_5y) },
         { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber), prefix: getSymbol("$", convertNetAssetToNumber) },
         { label: "Expense Ratio: ", value: fees?.net_expense_ratio_pct != null ? `${fees?.net_expense_ratio_pct}` : "N/A", suffix: getSymbol("%", fees?.net_expense_ratio_pct) },
@@ -152,9 +173,7 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
 
     // ETF Data
 
-    { console.log(typeof totalAmountOfHoldings) }
-
-    const keyFundMetrics = [
+    const keyMetricsEtf = [
         { label: "Dividend Yield: ", value: `${(fundDistributionYield.toFixed(2))}`, suffix: getSymbol("%", fundDistributionYield.toFixed(2)) },
         { label: "Beta: ", value: formatMetrics(beta) },
         { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber), prefix: getSymbol("$", convertNetAssetToNumber) },
@@ -165,8 +184,8 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
         { label: "Portfolio Turnover: ", value: `${formatMetrics(convertDecimalToPercentage(portfolio_turnover))}`, suffix: getSymbol("%", portfolio_turnover) }
     ]
 
-    const metricsToDisplay = isStock ? keyMetricsData : assetType === "ETP" ? keyFundMetrics : keyMutualFundMetrics
-
+    const metricsToDisplay = isStock ? keyMetricsStockData : assetType === ASSET_TYPES.ETP ? keyMetricsEtf : keyMetricsMutualFund
+    console.log(mutualFundExpenseRatioLoading)
     const metricLoader = assetType === ASSET_TYPES.MUTUAL_FUND ? isLoading : companyMetricsLoading
     const metricError = assetType === ASSET_TYPES.MUTUAL_FUND ? error : companyMetricsError
 
