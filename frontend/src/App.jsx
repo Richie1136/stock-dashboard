@@ -320,15 +320,6 @@ function App() {
     dashboardReady
   })
 
-  const dailyPrices = companyDailyPrice?.['Time Series (Daily)'] ?? {}
-
-  const chartData = Object.entries(dailyPrices).map(([date, prices]) => ({
-    date: date,
-    close: Number(prices["4. close"])
-  }))
-
-  const grabLastDaysClosingPrice = chartData[chartData.length - 1]?.close
-
   return (
     <section className="app">
       <Header selectStock={selectStock} symbol={symbol} />
@@ -343,7 +334,7 @@ function App() {
           <main className={`dashboard-main ${dashboardLoading ? "dashboard-main-hidden" : ""}`}>
             <div className='top-row'>
               <CompanyCard isItemInWatchlist={isItemInWatchlist} company={company} isLoading={companyLoader} error={errorLoader} updateWatchList={updateFundWatchList} symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} mutualFundProfile={mutualFundProfile} />
-              <KeyMetrics setFinishedKeyMetricsDividend={setFinishedKeyMetricsDividend} setFinishedMutualFundExpenseRatioSymbol={setFinishedMutualFundExpenseRatioSymbol} grabLastDaysClosingPrice={grabLastDaysClosingPrice} setFinishedKeyMetricsSymbol={setFinishedKeyMetricsSymbol} totalAmountOfHoldings={totalAmountOfHoldings} currency={company?.currency} symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
+              <KeyMetrics setFinishedKeyMetricsDividend={setFinishedKeyMetricsDividend} setFinishedMutualFundExpenseRatioSymbol={setFinishedMutualFundExpenseRatioSymbol} setFinishedKeyMetricsSymbol={setFinishedKeyMetricsSymbol} totalAmountOfHoldings={totalAmountOfHoldings} currency={company?.currency} symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
             </div>
             <div className='bottom-row'>
               <PriceChart isLoading={priceLoading} error={priceError} setCompanyDailyPrice={setCompanyDailyPrice} companyDailyPrice={companyDailyPrice} symbol={symbol} assetType={assetType} />

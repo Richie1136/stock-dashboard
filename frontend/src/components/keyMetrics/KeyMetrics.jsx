@@ -6,7 +6,7 @@ import { formatLargePriceValue, formatMetrics, formatMarketCap, formatNetAssets,
 import { apiBaseUrl } from '../../utils/apiConfig'
 import { ASSET_TYPES, isStockAssetType } from '../../constants/assetTypes'
 
-const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, currency, totalAmountOfHoldings, setFinishedMutualFundExpenseRatioSymbol, setFinishedKeyMetricsSymbol, setFinishedKeyMetricsDividend, isLoading, error }) => {
+const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHoldings, setFinishedMutualFundExpenseRatioSymbol, setFinishedKeyMetricsSymbol, setFinishedKeyMetricsDividend, isLoading, error }) => {
 
     const [companyKeyMetrics, setCompanyKeyMetrics] = useState(null)
     const [companyMetricsLoading, setCompanyMetricsLoading] = useState(false)
@@ -130,8 +130,6 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
         }
     }, [symbol, assetType, setFinishedKeyMetricsDividend])
 
-    const fundDistributionYield = (fundDividendYield / grabLastDaysClosingPrice) * 100
-
     const metrics = companyKeyMetrics ?? {}
     // Fund-specific fields comes from the profile request owned by App; price fields
     // such as beta and 52-week range still come from this component's metrics request.
@@ -164,6 +162,7 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
     // Mutual Fund Data
 
     const keyMetricsMutualFund = [
+        { label: "Dividend Yield: ", value: Number.isNaN(fundDividendYield) ? "N/A" : `${(fundDividendYield?.toFixed(2))}`, suffix: getSymbol("%", fundDividendYield) },
         { label: "Beta: ", value: formatMetrics(risk_ratios?.beta_5y) },
         { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber), prefix: getSymbol("$", convertNetAssetToNumber) },
         { label: "Expense Ratio: ", value: fees?.net_expense_ratio_pct != null ? `${fees?.net_expense_ratio_pct}` : "N/A", suffix: getSymbol("%", fees?.net_expense_ratio_pct) },
@@ -174,7 +173,7 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
     // ETF Data
 
     const keyMetricsEtf = [
-        { label: "Dividend Yield: ", value: `${(fundDistributionYield.toFixed(2))}`, suffix: getSymbol("%", fundDistributionYield.toFixed(2)) },
+        { label: "Dividend Yield: ", value: Number.isNaN(fundDividendYield) ? "N/A" : `${(fundDividendYield?.toFixed(2))}`, suffix: getSymbol("%", fundDividendYield) },
         { label: "Beta: ", value: formatMetrics(beta) },
         { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber), prefix: getSymbol("$", convertNetAssetToNumber) },
         { label: "Expense Ratio: ", value: `${formatMetrics(convertDecimalToPercentage(net_expense_ratio))}`, suffix: getSymbol("%", net_expense_ratio) },
@@ -185,7 +184,6 @@ const KeyMetrics = ({ symbol, assetType, grabLastDaysClosingPrice, etfProfile, c
     ]
 
     const metricsToDisplay = isStock ? keyMetricsStockData : assetType === ASSET_TYPES.ETP ? keyMetricsEtf : keyMetricsMutualFund
-    console.log(mutualFundExpenseRatioLoading)
     const metricLoader = assetType === ASSET_TYPES.MUTUAL_FUND ? isLoading : companyMetricsLoading
     const metricError = assetType === ASSET_TYPES.MUTUAL_FUND ? error : companyMetricsError
 

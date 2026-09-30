@@ -30,6 +30,7 @@ def price_chart(symbol):
         }), search_response.status_code   
 
     search_data = search_response.json()
+    print("ALPHA VANTAGE PRICE HISTORY RESPONSE:", search_data)
     if "Time Series (Daily)" not in search_data:
 
         return jsonify({
