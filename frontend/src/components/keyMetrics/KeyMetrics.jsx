@@ -162,7 +162,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
     // Mutual Fund Data
 
     const keyMetricsMutualFund = [
-        { label: "Dividend Yield: ", value: Number.isNaN(fundDividendYield) ? "N/A" : `${(fundDividendYield?.toFixed(2))}`, suffix: getSymbol("%", fundDividendYield) },
+        { label: "Dividend Yield: ", value: fundDividendYield === null || Number.isNaN(fundDividendYield) ? "N/A" : `${(fundDividendYield.toFixed(2))}`, suffix: getSymbol("%", fundDividendYield) },
         { label: "Beta: ", value: formatMetrics(risk_ratios?.beta_5y) },
         { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber), prefix: getSymbol("$", convertNetAssetToNumber) },
         { label: "Expense Ratio: ", value: fees?.net_expense_ratio_pct != null ? `${fees?.net_expense_ratio_pct}` : "N/A", suffix: getSymbol("%", fees?.net_expense_ratio_pct) },
@@ -173,7 +173,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
     // ETF Data
 
     const keyMetricsEtf = [
-        { label: "Dividend Yield: ", value: Number.isNaN(fundDividendYield) ? "N/A" : `${(fundDividendYield?.toFixed(2))}`, suffix: getSymbol("%", fundDividendYield) },
+        { label: "Dividend Yield: ", value: fundDividendYield === null || Number.isNaN(fundDividendYield) ? "N/A" : `${(fundDividendYield.toFixed(2))}`, suffix: getSymbol("%", fundDividendYield) },
         { label: "Beta: ", value: formatMetrics(beta) },
         { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber), prefix: getSymbol("$", convertNetAssetToNumber) },
         { label: "Expense Ratio: ", value: `${formatMetrics(convertDecimalToPercentage(net_expense_ratio))}`, suffix: getSymbol("%", net_expense_ratio) },

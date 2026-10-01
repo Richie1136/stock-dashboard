@@ -71,20 +71,36 @@ const PriceChart = ({ symbol, companyDailyPrice, isLoading, error }) => {
         )
     }
 
+    const fundReturns = getSelectedTimeline(selectedTimeline)
+
+    const firstPrice = fundReturns.length > 0 ? fundReturns[0].close : null
+    const lastPrice = fundReturns.length > 0 ? fundReturns[fundReturns.length - 1].close : null
+    const fundAmountReturned = fundReturns.length > 0 ? ((lastPrice - firstPrice) / firstPrice * 100) : null
+
+    const returnedSymbol = fundAmountReturned > 0 ? "+" : ""
+
+    const returnedPercentageValue = fundAmountReturned !== null ? `${returnedSymbol}${fundAmountReturned.toFixed(2)}%`
+        : null
+
     return (
         <div className='card chart-card'>
             <div className='chart-header'>
-                <h3>Price Chart</h3>
+                <div className='chart-title'>
+                    <h3>Price Chart</h3>
+                    <span className={`chart-return ${fundAmountReturned > 0 ? "positive" : fundAmountReturned < 0 ? "negative" : "neutral"}`}>
+                        {returnedPercentageValue}
+                    </span>
+                </div>
                 <div className='timeline-buttons'>
                     <button className={selectedTimeline === "5D" ? "active" : ''} onClick={() => setSelectedTimeline("5D")}>{"5D"}</button>
                     <button className={selectedTimeline === "10D" ? "active" : ''} onClick={() => setSelectedTimeline("10D")}>{"10D"}</button>
                     <button className={selectedTimeline === "1M" ? "active" : ''} onClick={() => setSelectedTimeline("1M")}>{"1M"}</button>
                     <button className={selectedTimeline === "3M" ? "active" : ''} onClick={() => setSelectedTimeline("3M")}>{"3M"}</button>
-                    <button className={selectedTimeline === "ALL" ? "active" : ''} onClick={() => setSelectedTimeline("ALL")}>{"ALL"}</button>
+                    <button className={selectedTimeline === "100D" ? "active" : ''} onClick={() => setSelectedTimeline("100D")}>{"100D"}</button>
                 </div>
             </div>
             <ResponsiveContainer width="100%" height={400}>
-                <AreaChart data={getSelectedTimeline(selectedTimeline)} margin={{ right: 12, top: 8, bottom: 18, left: 0 }}>
+                <AreaChart data={fundReturns} margin={{ right: 12, top: 8, bottom: 18, left: 0 }}>
                     <defs>
                         <linearGradient id='priceGradient' x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor='#60a5fa' stopOpacity={0.45} />

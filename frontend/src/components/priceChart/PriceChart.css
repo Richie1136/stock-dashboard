@@ -30,3 +30,20 @@
 .chart-card {
     padding: 16px;
 }
+
+.chart-return {
+    display: block;
+    margin-top: 5px;
+}
+
+.positive {
+    color: #4ade80;
+}
+
+.negative {
+    color: #f87171;
+}
+
+.neutral {
+    color: gray;
+}

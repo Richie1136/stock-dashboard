@@ -15,7 +15,7 @@ def wait_for_alpha_vantage():
 
         if last_request is not None:
             elapsed_time = time.monotonic() - last_request
-            remaining_time = 1.1 - elapsed_time
+            remaining_time = 1.5 - elapsed_time
 
             if remaining_time > 0:
                 time.sleep(remaining_time)

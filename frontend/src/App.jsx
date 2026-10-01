@@ -311,15 +311,6 @@ function App() {
 
   const totalAmountOfHoldings = fundHoldings?.metadata?.holdings_count
 
-  console.log({
-    symbol,
-    finishedOverviewSymbol,
-    finishedKeyMetricsSymbol,
-    finishedPriceChartSymbol,
-    finishedNewsSymbol,
-    dashboardReady
-  })
-
   return (
     <section className="app">
       <Header selectStock={selectStock} symbol={symbol} />
