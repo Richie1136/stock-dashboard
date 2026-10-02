@@ -7,7 +7,7 @@ import { formatLargePriceValue } from '../../helperFunctions/formatLargePriceVal
 
 const PriceChart = ({ symbol, companyDailyPrice, isLoading, error }) => {
 
-    const [selectedTimeline, setSelectedTimeline] = useState("ALL")
+    const [selectedTimeline, setSelectedTimeline] = useState("100D")
 
     // Normalize the provider's date-keyed response into the array Recharts expects.
     const dailyPrices = companyDailyPrice?.['Time Series (Daily)'] ?? {}
