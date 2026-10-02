@@ -100,7 +100,7 @@ const PriceChart = ({ symbol, companyDailyPrice, isLoading, error }) => {
                 </div>
             </div>
             <ResponsiveContainer width="100%" height={400}>
-                <AreaChart data={fundReturns} margin={{ right: 12, top: 8, bottom: 18, left: 0 }}>
+                <AreaChart data={fundReturns} margin={{ right: 12, top: 8, bottom: 18, left: 8 }}>
                     <defs>
                         <linearGradient id='priceGradient' x1="0" y1="0" x2="0" y2="1">
                             <stop offset="0%" stopColor='#60a5fa' stopOpacity={0.45} />
