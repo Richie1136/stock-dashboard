@@ -1,0 +1,11 @@
+/* .earnings-card {
+    display: grid;
+} */
+
+.earnings-metrics {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 20px;
+    row-gap: 10px;
+}
