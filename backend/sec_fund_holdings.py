@@ -2,8 +2,6 @@ import os
 import requests
 from dotenv import load_dotenv
 from functools import lru_cache
-import time
-from openfigi import get_tickers_in_batches
 
 load_dotenv()
 
@@ -68,90 +66,17 @@ def get_sec_fund_holdings(series_id):
     filings = data.get("filings", [])
 
     if not filings:
-        return {"data": []}
+        return {"data": [], "reporting_date": None, "total_holdings": 0}
 
     filing = filings[0]
     holdings = filing.get("invstOrSecs", [])
 
     reporting_date = filing.get("genInfo", {}).get("repPdDate")
 
-    sorted_holdings = sorted(
-        holdings,
-        key=lambda holding: float(holding.get("valUSD") or 0),
-        reverse=True
-    )
-
-    isins = []
-
-    for holding in sorted_holdings:
-        identifiers = holding.get("identifiers") or {}
-        isin = (identifiers.get("isin") or {}).get("value")
-
-        if isin:
-            isins.append(isin)
-
-    isins = list(dict.fromkeys(isins))
-
-    start_time = time.perf_counter()
-
-    ticker_map = get_tickers_in_batches(isins[:20])
-
-    elapsed_time = time.perf_counter() - start_time
-
-    print(f"OpenFIGI lookup took {elapsed_time:.2f} seconds")
-
-    unresolved_isins = [
-    isin
-    for isin, ticker in ticker_map.items()
-    if not ticker
-]
-    for holding in sorted_holdings:
-        identifiers = holding.get("identifiers") or {}
-        isin = (identifiers.get("isin") or {}).get("value")
-
-        if isin in unresolved_isins:
-            print("Unresolved Holding:", {
-                "isin": isin,
-                "name": holding.get("title") or holding.get("name"),
-                "weight_pct": holding.get("pctVal")
-            })
-
-    print("ISINs Requested:", len(isins[:100]))
-
-    print(
-        "Tickers Resolved:",
-        sum(1 for ticker in ticker_map.values() if ticker)
-    )
-
-    print(
-        "Unresolved Tickers:",
-        sum(1 for ticker in ticker_map.values() if not ticker)
-    )
-
-    for holding in sorted_holdings[:10]:
-        print(
-            holding.get("title") or holding.get("name"),
-            holding.get("identifiers", {})
-        )
-
-    formatted_holdings = []
-
-    for holding in sorted_holdings:
-        identifiers = holding.get("identifiers") or {}
-        isin = (identifiers.get("isin") or 
-                {}).get("value")
-        
-        ticker = ticker_map.get(isin) if isin else None
-        formatted_holdings.append({
-            "issuer_ticker": ticker,
-            "issuer_name": holding.get("title") or holding.get("name"),
-            "weight_pct": float(holding.get("pctVal") or 0)
-        })
-
     return {
-        "data": formatted_holdings,
+        "data": [],
         "reporting_date": reporting_date,
-        "total_holdings": len(sorted_holdings)
+        "total_holdings": len(holdings)
     }
 
 def get_fund_holdings_by_symbol(symbol):

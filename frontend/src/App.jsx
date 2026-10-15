@@ -12,6 +12,7 @@ import { apiBaseUrl } from './utils/apiConfig'
 import { ASSET_TYPES, isStockAssetType } from './constants/assetTypes'
 import TopHoldings from './components/topHoldings/TopHoldings'
 import Loading from './components/loading/Loading'
+import EarningsCard from './components/earningsCard/EarningsCard'
 
 function App() {
 
@@ -309,7 +310,7 @@ function App() {
 
   const assetTypeHoldings = assetType === ASSET_TYPES.MUTUAL_FUND ? fundHoldings : etfProfile
 
-  const totalAmountOfHoldings = fundHoldings?.metadata?.holdings_count
+  const totalAmountOfHoldings = fundHoldings?.total_holdings
 
   return (
     <section className="app">
@@ -331,6 +332,7 @@ function App() {
               <PriceChart isLoading={priceLoading} error={priceError} setCompanyDailyPrice={setCompanyDailyPrice} companyDailyPrice={companyDailyPrice} symbol={symbol} assetType={assetType} />
               {assetType === ASSET_TYPES.MUTUAL_FUND || assetType === ASSET_TYPES.ETP ? <TopHoldings symbol={symbol} holdings={assetTypeHoldings} assetType={assetType} totalAmountOfHoldings={totalAmountOfHoldings} /> : <NewsCard symbol={symbol} setFinishedNewsSymbol={setFinishedNewsSymbol} />}
             </div>
+            {symbol && isStock && <EarningsCard symbol={symbol} />}
             <AISummaryCard />
           </main>
         </div>

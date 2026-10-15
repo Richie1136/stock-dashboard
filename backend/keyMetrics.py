@@ -2,6 +2,8 @@ from flask import jsonify, Blueprint
 from dotenv import load_dotenv
 import os
 import requests
+from sec_fund_holdings import get_fund_holdings_by_symbol
+from yahooquery import Ticker
 
 load_dotenv()
 
@@ -71,15 +73,36 @@ def fund_holdings(symbol):
     symbol = symbol.strip().upper()
 
     if not symbol:
-        return jsonify({"error": "A stock symbol is required"}), 400
+        return jsonify({"error": "A fund symbol is required"}), 400
         
     if symbol in fund_holdings_cache:
-        print("BUSINESS QUANT HOLDINGS CACHE HIT:", symbol)
+        print("Fund HOLDINGS CACHE HIT:", symbol)
         return jsonify(fund_holdings_cache[symbol])
-    key_metrics_holdings_url = (f"https://data.businessquant.com/funds/holdings?ticker={symbol}&api_key={BUSINESS_QUANT_API_KEY}")
-
     try:
-        key_metrics_holdings_response = requests.get(key_metrics_holdings_url, timeout=10)
+         # Get total holdings count from SEC
+         fund_holdings_data = get_fund_holdings_by_symbol(symbol)
+
+         # Get top 10 holdings from Yahoo Finance
+         fund = Ticker(symbol)
+         yahoo_data = fund.fund_holding_info.get(symbol, {})
+
+         yahoo_holdings = yahoo_data.get("holdings", [])
+
+         formatted_holdings = []
+
+         for holding in yahoo_holdings:
+              formatted_holdings.append({
+                   "issuer_ticker": holding.get("symbol"),
+                   "issuer_name": holding.get("holdingName"),
+                   "weight_pct": holding.get("holdingPercent", 0) * 100
+              })
+
+         fund_holdings_data = {
+              "data": formatted_holdings,
+              "reporting_date": fund_holdings_data.get("reporting_date"),
+              "total_holdings": fund_holdings_data.get("total_holdings", 0)
+         }
+
     except requests.exceptions.ReadTimeout:
         return jsonify ({
             "error": "Fund Holdings provider timed out"
@@ -90,20 +113,16 @@ def fund_holdings(symbol):
             "error": "Fund Holdings provider unavailable"
         }), 503
     
-    if not key_metrics_holdings_response.ok:
+    if not fund_holdings_data.get("data"):
         return jsonify({
-            "error": "Fund holdings data request failed",
-            "details": key_metrics_holdings_response.text
+            "error": f"No fund holdings found for {symbol}",
 
-        }), key_metrics_holdings_response.status_code 
+        }), 404
     
+    fund_holdings_cache[symbol] = fund_holdings_data
 
-    
-    key_metrics_holdings_data = key_metrics_holdings_response.json()
+    return jsonify(fund_holdings_data)
 
-    fund_holdings_cache[symbol] = key_metrics_holdings_data
-
-    return jsonify(key_metrics_holdings_data)
 
 fund_calculate_dividend_yield_bp = Blueprint("calculate_dividend_yield", __name__)
 

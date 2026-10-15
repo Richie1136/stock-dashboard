@@ -164,7 +164,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
     const keyMetricsMutualFund = [
         { label: "Dividend Yield: ", value: fundDividendYield === null || Number.isNaN(fundDividendYield) ? "N/A" : `${(fundDividendYield.toFixed(2))}`, suffix: getSymbol("%", fundDividendYield) },
         { label: "Beta: ", value: formatMetrics(risk_ratios?.beta_5y) },
-        { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber), prefix: getSymbol("$", convertNetAssetToNumber) },
+        { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber) },
         { label: "Expense Ratio: ", value: fees?.net_expense_ratio_pct != null ? `${fees?.net_expense_ratio_pct}` : "N/A", suffix: getSymbol("%", fees?.net_expense_ratio_pct) },
         { label: "Holdings: ", value: totalAmountOfHoldings != null ? totalAmountOfHoldings.toLocaleString("en-US") : "N/A" },
         { label: "Portfolio Turnover: ", value: `${formatMetrics(fees?.portfolio_turnover_pct)}`, suffix: getSymbol("%", fees?.portfolio_turnover_pct) }
@@ -175,7 +175,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
     const keyMetricsEtf = [
         { label: "Dividend Yield: ", value: fundDividendYield === null || Number.isNaN(fundDividendYield) ? "N/A" : `${(fundDividendYield.toFixed(2))}`, suffix: getSymbol("%", fundDividendYield) },
         { label: "Beta: ", value: formatMetrics(beta) },
-        { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber), prefix: getSymbol("$", convertNetAssetToNumber) },
+        { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber) },
         { label: "Expense Ratio: ", value: `${formatMetrics(convertDecimalToPercentage(net_expense_ratio))}`, suffix: getSymbol("%", net_expense_ratio) },
         { label: "52 Week High: ", value: formatMetrics(week52High), prefix: getSymbol("$", week52High) },
         { label: "52 Week Low: ", value: formatMetrics(week52Low), prefix: getSymbol("$", week52Low) },

@@ -63,7 +63,7 @@ const Header = ({ selectStock, symbol }) => {
                     console.log("Unknown Finnhub type:", stock.type, stock)
                 }
                 return isSupportedAssetType(stock.type) &&
-                    (!stock.displaySymbol.includes(".") || stock.displaySymbol === "BRK.A")
+                    (!stock.displaySymbol.includes(".") || stock.displaySymbol === "BRK.A" || stock.displaySymbol === "BRK.B")
             }) || []
             console.log("Supported assets:", supportedAssets)
             return supportedAssets
