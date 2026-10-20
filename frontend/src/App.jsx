@@ -58,7 +58,7 @@ function App() {
     if (!symbol || !isStock) return
 
 
-    // Tie the request to this selection so a slower previous response cannot replace it.
+    // The signal is checked below before marking this request as finished.
     const controller = new AbortController()
 
     const getCompanyCard = async () => {
@@ -300,6 +300,8 @@ function App() {
   const companyLoader = isStock ? companyLoading : assetType === ASSET_TYPES.MUTUAL_FUND ? mutualFundLoading : etfLoading
   const errorLoader = isStock ? companyError : assetType === ASSET_TYPES.MUTUAL_FUND ? mutualFundError : etfError
 
+  // Completion includes failed requests so cards can show errors once loading ends.
+  // Compare symbols so completion for a different selection does not satisfy readiness.
   const fundReady = finishedFundHoldingsSymbol === symbol &&
     finishedOverviewSymbol === symbol &&
     finishedPriceChartSymbol === symbol

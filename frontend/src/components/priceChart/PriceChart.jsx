@@ -4,32 +4,29 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianG
 import Loading from '../loading/Loading'
 import { CustomTooltip } from './customTooltip'
 import { formatLargePriceValue } from '../../helperFunctions/formatLargePriceValue'
+import { formatDate } from '../../helperFunctions'
 
 const PriceChart = ({ symbol, companyDailyPrice, isLoading, error }) => {
 
     const [selectedTimeline, setSelectedTimeline] = useState("100D")
 
-    // Normalize the provider's date-keyed response into the array Recharts expects.
-    const dailyPrices = companyDailyPrice?.['Time Series (Daily)'] ?? {}
+    // Extract closing prices and sort oldest first for timeline slices and return calculations.
+    const dailyPrices = companyDailyPrice ?? {}
 
-    const chartData = Object.entries(dailyPrices).map(([date, prices]) => ({
-        date: date,
-        close: Number(prices["4. close"])
-    }))
+    const chartData = Object.entries(dailyPrices)?.map((item) => {
+
+        const { close, date } = item[1] ?? {}
+
+        return (
+            { close: close, date: date }
+        )
+    }).sort((a, b) => new Date(a.date) - new Date(b.date))
 
     if (!symbol) {
         return <div className='card chart-card'>
             <h3>{"Price Chart"}</h3>
             <p>{"Search for a stock or fund to display the price chart data."}</p>
         </div>
-    }
-
-    const formatDate = (date) => {
-        return new Date(`${date}T00:00:00`).toLocaleDateString('en-US', {
-            month: "long",
-            day: "numeric",
-            year: "numeric"
-        })
     }
 
     // Approximate month ranges with trading days rather than calendar days.
@@ -73,6 +70,7 @@ const PriceChart = ({ symbol, companyDailyPrice, isLoading, error }) => {
 
     const fundReturns = getSelectedTimeline(selectedTimeline)
 
+    // Measure the closing-price change across the selected range; dividends are excluded.
     const firstPrice = fundReturns.length > 0 ? fundReturns[0].close : null
     const lastPrice = fundReturns.length > 0 ? fundReturns[fundReturns.length - 1].close : null
     const fundAmountReturned = fundReturns.length > 0 ? ((lastPrice - firstPrice) / firstPrice * 100) : null

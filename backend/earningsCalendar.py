@@ -17,8 +17,6 @@ def company_earnings_calendar(symbol):
     symbol = symbol.strip().upper()
     today = date.today()
     thirtyDaysAfter = today + timedelta(days=30)
-    print(today)
-    print(thirtyDaysAfter)
 
     if not symbol:
         return jsonify({"error": "A stock symbol is required"}), 400
@@ -27,7 +25,7 @@ def company_earnings_calendar(symbol):
         "X-Finnhub-Token": API_KEY
     }
 
-  # Use that symbol to get profile data
+    # Query the next 30 days on a cache miss; cached results last for this process.
     try:
         if symbol in company_earnings_calendar_cache:
             print("COMPANY Earnings CACHE HIT:", symbol)

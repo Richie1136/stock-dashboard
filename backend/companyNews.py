@@ -25,7 +25,7 @@ def company_news(symbol):
         "X-Finnhub-Token": API_KEY
     }
 
-  # Use that symbol to get profile data
+    # Cache news by symbol for this process; the date window is applied on cache misses.
     try:
         if symbol in company_news_cache:
             print("COMPANY NEWS CACHE HIT:", symbol)

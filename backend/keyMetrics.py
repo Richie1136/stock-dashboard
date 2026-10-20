@@ -184,30 +184,60 @@ def mutual_fund_expense_ratio(symbol):
         return jsonify({"error": "A stock symbol is required"}), 400
     
     if symbol in mutual_fund_expense_ratio_cache:
-        print("BUSINESS QUANT EXPENSE RATIO CACHE HIT:", symbol)
         return jsonify(mutual_fund_expense_ratio_cache[symbol])
 
-    key_metrics_expense_ratio_url = (f"https://data.businessquant.com/funds/overview?ticker={symbol}&api_key={BUSINESS_QUANT_API_KEY}")
+    fund = Ticker(symbol)
 
-    try:
-        key_metrics_expense_ratio_response = requests.get(key_metrics_expense_ratio_url, timeout=10)
-    except requests.exceptions.ReadTimeout:
-            
-            return jsonify ({
-                "error": "Key Metrics Expense Ratio provider timed out"
-            }), 504
-    
-    except requests.exceptions.ConnectionError:
-            return jsonify ({
-                "error": "Key Metrics Expense Ratio provider unavailable"
-            }), 503
-  
-    if not key_metrics_expense_ratio_response.ok:
-        return jsonify({
-            "error": "Key Metrics Expense Ratio data request failed"
-        }), key_metrics_expense_ratio_response.status_code 
+    yahoo_profile = fund.fund_profile.get(symbol, {})
+    yahoo_performance = fund.fund_performance.get(symbol, {})
+    yahoo_summary = fund.summary_detail.get(symbol, {})
+    yahoo_key_stats = fund.key_stats.get(symbol, {})
 
-    key_metrics_expense_ratio_data = key_metrics_expense_ratio_response.json()
+    # Expense Ratio
+
+    expense_ratio = yahoo_profile.get("feesExpensesInvestment", {}).get("netExpRatio")
+
+    # Net Assets
+
+    net_assets = yahoo_summary.get("totalAssets")
+
+    # Dividend Yield
+
+    dividend_yield = yahoo_summary.get("yield")
+
+    # Morningstar Ratings
+
+    morningstar_overall_rating = yahoo_key_stats.get("morningStarOverallRating")
+
+    morningstar_risk_rating = yahoo_key_stats.get("morningStarRiskRating")
+
+    # Portfolio Turnover
+
+    portfolio_turnover = yahoo_key_stats.get("annualHoldingsTurnover")
+
+    # Beta (5Y)
+
+    risk_statistics = yahoo_performance.get("riskOverviewStatistics", {}).get("riskStatistics", [])
+
+    beta_5y = next((risk.get("beta") for risk in risk_statistics if risk.get("year") == "5y"), None)
+
+    key_metrics_expense_ratio_data = {
+        "summary": {
+            "assets": {
+                "net_assets_usd": net_assets
+            },
+            "fees": {
+                "net_expense_ratio_pct": expense_ratio * 100 if expense_ratio is not None else None,
+                "portfolio_turnover_pct": portfolio_turnover * 100 if portfolio_turnover is not None else None
+            },
+            "risk_ratio": {
+                "beta_5y": beta_5y
+            },
+            "dividend_yield_pct": dividend_yield * 100 if dividend_yield is not None else None,
+            "morningstar_overall_rating": morningstar_overall_rating,
+            "morningstar_risk_rating": morningstar_risk_rating
+        }
+    }
 
     mutual_fund_expense_ratio_cache[symbol] = key_metrics_expense_ratio_data
 

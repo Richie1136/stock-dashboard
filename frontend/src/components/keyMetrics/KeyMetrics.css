@@ -10,7 +10,7 @@
     flex-direction: column;
     gap: 8px;
     transition: transform 0.2s ease;
-    width: 150px;
+    min-width: 0px;
 }
 
 .metric-item:hover {

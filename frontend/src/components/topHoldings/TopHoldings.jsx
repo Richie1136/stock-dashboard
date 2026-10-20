@@ -7,6 +7,7 @@ const TopHoldings = ({ holdings, assetType, totalAmountOfHoldings }) => {
 
     const topTenHoldings = holdingData?.slice(0, 10) ?? []
 
+    // ETF weights are fractions; mutual-fund weights already use percentage units.
     const topTenPercentage = topTenHoldings.reduce((total, item) => {
         const weight = assetType === ASSET_TYPES.MUTUAL_FUND ? item.weight_pct : item.weight
         const isEtf = assetType === ASSET_TYPES.ETP ? Number(weight) * 100 : weight

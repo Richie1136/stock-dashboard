@@ -57,7 +57,7 @@ const Header = ({ selectStock, symbol }) => {
             }
             const data = await response.json()
 
-            // The dashboard currently supports US-listed stocks and ETPs only.
+            // Filter supported asset types and exclude dotted tickers except Berkshire share classes.
             const supportedAssets = data?.result?.filter((stock) => {
                 if (!isSupportedAssetType(stock.type)) {
                     console.log("Unknown Finnhub type:", stock.type, stock)

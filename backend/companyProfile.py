@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import requests
 from wait_for_alpha_vantage import wait_for_alpha_vantage
+from yahooquery import Ticker
 
 
 
@@ -98,19 +99,29 @@ mutual_fund_profile_cache = {}
 def fund_mutual_fund_profile_(symbol):
     symbol = symbol.strip().upper()
     if symbol in mutual_fund_profile_cache:
-        print("BUSINESS QUANT PROFILE CACHE HIT:", symbol)
 
         return jsonify(mutual_fund_profile_cache[symbol])
-    search_url = (f"https://data.businessquant.com/funds/profile?ticker={symbol}&api_key={BUSINESS_QUANT_API_KEY}")
-    search_response = requests.get(search_url, timeout=10)
+    fund = Ticker(symbol)
 
-    if not search_response.ok:
-        return jsonify({
-            "error": "Profile data request failed"
-        }), search_response.status_code 
+    yahoo_profile = fund.fund_profile.get(symbol, {})
 
+    yahoo_quote_type = fund.quote_type.get(symbol, {})
 
-    profile_data = search_response.json()
+    # Fund Overview
 
+    fund_name = yahoo_quote_type.get("longName")
+
+    fund_symbol = yahoo_quote_type.get("symbol")
+
+    asset_type = yahoo_quote_type.get("quoteType")
+
+    inception_date = yahoo_quote_type.get("firstTradeDateEpochUtc")
+
+    if inception_date:
+        inception_date = str(inception_date).split(" ")[0]
+    
+    profile_data = {
+        "firstpricedate": inception_date
+    }
     mutual_fund_profile_cache[symbol] = profile_data
     return jsonify(profile_data)

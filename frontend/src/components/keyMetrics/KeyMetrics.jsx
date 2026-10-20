@@ -5,6 +5,7 @@ import Loading from '../loading/Loading'
 import { formatLargePriceValue, formatMetrics, formatMarketCap, formatNetAssets, convertDecimalToPercentage, getSymbol } from '../../helperFunctions'
 import { apiBaseUrl } from '../../utils/apiConfig'
 import { ASSET_TYPES, isStockAssetType } from '../../constants/assetTypes'
+import { StarRating } from '../../helperFunctions/StarRating'
 
 const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHoldings, setFinishedMutualFundExpenseRatioSymbol, setFinishedKeyMetricsSymbol, setFinishedKeyMetricsDividend, isLoading, error }) => {
 
@@ -135,9 +136,10 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
     // such as beta and 52-week range still come from this component's metrics request.
     const fundMetrics = etfProfile ?? {}
 
-    const mutualFundExpenseRatios = mutualFundExpenseRatio ?? {}
+    const mutualFundKeyMetricsData = mutualFundExpenseRatio ?? {}
 
-    const { assets, fees, risk_ratios } = mutualFundExpenseRatios?.summary ?? {}
+    const { assets, fees, risk_ratio, morningstar_overall_rating, morningstar_risk_rating, dividend_yield_pct } = mutualFundKeyMetricsData?.summary ?? {}
+
 
     const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta } = metrics ?? {}
     const { net_assets, net_expense_ratio, portfolio_turnover } = fundMetrics ?? {}
@@ -162,12 +164,15 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
     // Mutual Fund Data
 
     const keyMetricsMutualFund = [
-        { label: "Dividend Yield: ", value: fundDividendYield === null || Number.isNaN(fundDividendYield) ? "N/A" : `${(fundDividendYield.toFixed(2))}`, suffix: getSymbol("%", fundDividendYield) },
-        { label: "Beta: ", value: formatMetrics(risk_ratios?.beta_5y) },
+        { label: "Dividend Yield: ", value: dividend_yield_pct !== null ? dividend_yield_pct?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A", suffix: getSymbol("%", dividend_yield_pct) },
+        { label: "Beta: ", value: formatMetrics(risk_ratio?.beta_5y) },
         { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber) },
-        { label: "Expense Ratio: ", value: fees?.net_expense_ratio_pct != null ? `${fees?.net_expense_ratio_pct}` : "N/A", suffix: getSymbol("%", fees?.net_expense_ratio_pct) },
+        { label: "Expense Ratio: ", value: fees?.net_expense_ratio_pct != null ? fees?.net_expense_ratio_pct?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A", suffix: getSymbol("%", fees?.net_expense_ratio_pct) },
         { label: "Holdings: ", value: totalAmountOfHoldings != null ? totalAmountOfHoldings.toLocaleString("en-US") : "N/A" },
-        { label: "Portfolio Turnover: ", value: `${formatMetrics(fees?.portfolio_turnover_pct)}`, suffix: getSymbol("%", fees?.portfolio_turnover_pct) }
+        { label: "Portfolio Turnover: ", value: `${formatMetrics(fees?.portfolio_turnover_pct)}`, suffix: getSymbol("%", fees?.portfolio_turnover_pct) },
+        { label: "Morningstar Overall Rating", value: <StarRating rating={morningstar_overall_rating} /> },
+        { label: "Morningstar Risk Rating", value: <StarRating rating={morningstar_risk_rating} /> }
+
     ]
 
     // ETF Data

@@ -43,6 +43,7 @@ def search_companies():
             search_cache[search_term] = search_data
             return jsonify(search_data)
     
+    # Reserve the Alpha Vantage fallback for submitted searches, not autocomplete.
     if not explicit_search:
          return jsonify(search_data)
 
@@ -76,6 +77,7 @@ def search_companies():
 
     matches = alpha_data.get("bestMatches", [])
 
+    # Match Finnhub's response shape so the frontend can consume either provider.
     normalized_results = []
 
     for match in matches:

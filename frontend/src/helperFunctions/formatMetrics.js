@@ -1,4 +1,5 @@
 export const formatMetrics = (metric) => {
+    // Check missing values before Number() would turn null or an empty string into zero.
     if (metric === null || metric === undefined || metric === "") {
         return "N/A"
     }
