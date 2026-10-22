@@ -178,9 +178,3 @@ def get_fund_holdings_by_symbol(symbol):
         "reporting_date": filing['reporting_date'],
         "total_holdings": filing['total_holdings']
     }
-
-if __name__ == "__main__":
-    filings = get_fund_nport_filings("0001924868")
-
-    print("TOTAL FILINGS RETURNED:", len(filings))
-    print("CHPY:", find_fund_nport_filing("CHPY"))

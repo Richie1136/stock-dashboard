@@ -310,7 +310,7 @@ function App() {
 
   const dashboardLoading = Boolean(symbol) && !dashboardReady
 
-  const assetTypeHoldings = assetType === ASSET_TYPES.MUTUAL_FUND ? fundHoldings : etfProfile
+  const assetTypeHoldings = assetType === ASSET_TYPES.MUTUAL_FUND ? fundHoldings : etfProfile?.holdings ? etfProfile : fundHoldings
 
   const totalAmountOfHoldings = fundHoldings?.total_holdings
 

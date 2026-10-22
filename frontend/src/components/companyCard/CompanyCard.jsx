@@ -51,6 +51,8 @@ const CompanyCard = ({ symbol, isLoading, error, company, isItemInWatchlist, ass
 
     const displayFundName = formatFundName(fundName)
 
+    const inceptionDate = etfProfile?.inception_date.split(" ")[0]
+
     return (
         <div className='card company-card'>
             {assetType === ASSET_TYPES.ETP || assetType === ASSET_TYPES.MUTUAL_FUND ? (
@@ -58,9 +60,9 @@ const CompanyCard = ({ symbol, isLoading, error, company, isItemInWatchlist, ass
                     <h3>Fund Overview</h3>
                     <h2>{displayFundName}</h2>
                     <p>Ticker: {symbol}</p>
-                    <p>Inception Date: {assetType === ASSET_TYPES.ETP ? formatIPOLayout(etfProfile?.inception_date) : formatIPOLayout(mutualFundProfile?.firstpricedate)}</p>
+                    <p>Inception Date: {assetType === ASSET_TYPES.ETP ? formatIPOLayout(inceptionDate) : formatIPOLayout(mutualFundProfile?.firstpricedate)}</p>
                     <p>Asset Type: {assetType === ASSET_TYPES.ETP ? "ETF" : "Mutual Fund"}</p>
-                    {assetType === ASSET_TYPES.ETP && <p>Leveraged: {etfProfile?.leveraged}</p>}
+                    {assetType === ASSET_TYPES.ETP && <p>Leveraged: {etfProfile?.leveraged ?? "No"}</p>}
                     <div className='company-actions'>
                         <button onClick={updateWatchList}>{isItemInWatchlist ? "Remove From Watchlist" : "Add To Watchlist"}</button>
                     </div>

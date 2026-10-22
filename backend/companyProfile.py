@@ -83,15 +83,38 @@ def fund_etf_profile(symbol):
         }), 429
 
     if not profile_data:
-        return jsonify({
-            "error": "No ETF profile data returned"
-        }),404
+        print("ALPHA VANTAGE ETF PROFILE EMPTY, TRYING YAHOO:", symbol)
+
+        fund = Ticker(symbol)
+        
+        yahoo_key_stats = fund.key_stats.get(symbol, {})
+        yahoo_profile = fund.fund_profile.get(symbol, {})
+
+        fees = yahoo_profile.get("feesExpensesInvestment", {})
+
+        net_assets = yahoo_key_stats.get("totalAssets")
+        inception_date = yahoo_key_stats.get("fundInceptionDate")
+        expense_ratio = fees.get("annualReportExpenseRatio")
+        portfolio_turnover = fees.get("annualHoldingsTurnover")
+
+        if all(value is None for value in (
+            net_assets, expense_ratio, portfolio_turnover, inception_date
+        )):
+            
+            return jsonify({
+                "error": "No ETF profile data returned"
+            }),404
+        
+        profile_data = {
+            "net_assets": net_assets,
+            "net_expense_ratio": expense_ratio,
+            "portfolio_turnover": portfolio_turnover,
+            "inception_date": inception_date
+        }
     etf_profile_cache[symbol] = profile_data
     return jsonify(profile_data)
 
 fund_mutual_fund_profile_bp = Blueprint("fund_mutual_fund_profile", __name__)
-
-BUSINESS_QUANT_API_KEY= os.getenv('BUSINESS_QUANT_API_KEY', "").strip()
 
 mutual_fund_profile_cache = {}
 
@@ -103,17 +126,7 @@ def fund_mutual_fund_profile_(symbol):
         return jsonify(mutual_fund_profile_cache[symbol])
     fund = Ticker(symbol)
 
-    yahoo_profile = fund.fund_profile.get(symbol, {})
-
     yahoo_quote_type = fund.quote_type.get(symbol, {})
-
-    # Fund Overview
-
-    fund_name = yahoo_quote_type.get("longName")
-
-    fund_symbol = yahoo_quote_type.get("symbol")
-
-    asset_type = yahoo_quote_type.get("quoteType")
 
     inception_date = yahoo_quote_type.get("firstTradeDateEpochUtc")
 

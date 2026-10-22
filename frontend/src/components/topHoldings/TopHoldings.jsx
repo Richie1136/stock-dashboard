@@ -3,15 +3,14 @@ import './TopHoldings.css'
 
 const TopHoldings = ({ holdings, assetType, totalAmountOfHoldings }) => {
 
-    const holdingData = assetType === ASSET_TYPES.MUTUAL_FUND ? holdings?.data : holdings?.holdings
-
+    const holdingData = assetType === ASSET_TYPES.MUTUAL_FUND ? holdings?.data : holdings?.holdings ?? holdings?.data
     const topTenHoldings = holdingData?.slice(0, 10) ?? []
 
     // ETF weights are fractions; mutual-fund weights already use percentage units.
     const topTenPercentage = topTenHoldings.reduce((total, item) => {
-        const weight = assetType === ASSET_TYPES.MUTUAL_FUND ? item.weight_pct : item.weight
-        const isEtf = assetType === ASSET_TYPES.ETP ? Number(weight) * 100 : weight
-        return total + Number(isEtf)
+        const weight = assetType === ASSET_TYPES.MUTUAL_FUND ? item.weight_pct : item.weight ?? item.weight_pct
+        const percentage = item.weight != null && assetType === ASSET_TYPES.ETP ? Number(weight) * 100 : Number(weight)
+        return total + percentage
     }, 0)
 
     return (
@@ -21,10 +20,10 @@ const TopHoldings = ({ holdings, assetType, totalAmountOfHoldings }) => {
 
             <div className='top-holdings-list'>
                 {topTenHoldings.map((item, index) => {
-                    const ticker = assetType === ASSET_TYPES.MUTUAL_FUND ? item.issuer_ticker : item.symbol
+                    const ticker = assetType === ASSET_TYPES.MUTUAL_FUND ? item.issuer_ticker : item.symbol ?? item.issuer_ticker
                     const name = assetType === ASSET_TYPES.MUTUAL_FUND ? item.issuer_name : item.description
-                    const weight = assetType === ASSET_TYPES.MUTUAL_FUND ? item.weight_pct : item.weight
-                    const isEtf = assetType === ASSET_TYPES.ETP ? Number(weight) * 100 : weight
+                    const weight = assetType === ASSET_TYPES.MUTUAL_FUND ? item.weight_pct : item.weight ?? item.weight_pct
+                    const percentage = item.weight != null && assetType === ASSET_TYPES.ETP ? Number(weight) * 100 : Number(weight)
                     const rank = index + 1
                     return (
                         <div className='top-holding-row' key={`${ticker}-${index}`}>
@@ -38,7 +37,7 @@ const TopHoldings = ({ holdings, assetType, totalAmountOfHoldings }) => {
                                 </span>
                             </div>
                             <span className='holding-weight'>
-                                {isEtf?.toFixed(2)}%
+                                {percentage?.toFixed(2)}%
                             </span>
                         </div>
                     )
