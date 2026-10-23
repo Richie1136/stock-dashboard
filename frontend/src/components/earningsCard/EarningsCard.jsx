@@ -1,20 +1,9 @@
 import { useState, useEffect } from 'react'
 import { apiBaseUrl } from '../../utils/apiConfig'
-import { formatDate, formatLargePriceValue, formatNetAssets } from '../../helperFunctions'
+import { formatDate, formatLargePriceValue } from '../../helperFunctions'
 import Loading from '../loading/Loading'
 import './EarningsCard.css'
-
-const formatEarningsTime = (hour) => {
-    switch (hour) {
-        case "amc":
-            return "After Market Close"
-        case "bmo":
-            return "Before Market Open"
-
-        default:
-            return "N/A"
-    }
-}
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 
 const EarningsCard = ({ symbol }) => {
     const [companyEarnings, setCompanyEarnings] = useState({})
@@ -56,10 +45,8 @@ const EarningsCard = ({ symbol }) => {
         }
     }, [symbol])
 
-
-    const companyEarningsData = companyEarnings.earningsCalendar?.[0]
-
-    console.log(companyEarningsData)
+    const companyEarningsData = companyEarnings.upcoming
+    const earningsHistory = companyEarnings.history ?? []
 
     if (companyEarningsCardLoading) {
         return (
@@ -86,49 +73,43 @@ const EarningsCard = ({ symbol }) => {
         </div>
     }
 
-    const { date, hour, quarter, epsEstimate, revenueEstimate, year, epsActual } = companyEarningsData ?? {}
+    const { date, estimated_eps } = companyEarningsData ?? {}
 
     return (
         <div className='card earnings-card'>
             <h1>Upcoming Earnings</h1>
             <div className='earnings-metrics'>
                 <span className='metric-label'>
-                    Date:
+                    Next Earning Date:
                 </span>
                 <span className='metric-value'>
-                    {formatDate(date)}
+                    {date ? formatDate(date) : "N/A"}
                 </span>
                 <span className='metric-label'>
-                    Fiscal Quarter:
+                    Estimated Quarterly Earnings Per Share:
                 </span>
                 <span className='metric-value'>
-                    Q{quarter} {year}
-                </span>
-                <span className='metric-label'>
-                    EPS Estimate:
-                </span>
-                <span className='metric-value'>
-                    {formatLargePriceValue(epsEstimate)}
-                </span>
-                <span className='metric-label'>
-                    EPS Actual:
-                </span>
-                <span className='metric-value'>
-                    {formatLargePriceValue(epsActual)}
-                </span>
-                <span className='metric-label'>
-                    Revenue Estimate:
-                </span>
-                <span className='metric-value'>
-                    {formatNetAssets(revenueEstimate)}
-                </span>
-                <span className='metric-label'>
-                    Earnings Time:
-                </span>
-                <span className='metric-value'>
-                    {formatEarningsTime(hour)}
+                    {estimated_eps !== null ? formatLargePriceValue(estimated_eps) : "N/A"}
                 </span>
             </div>
+            {earningsHistory.length > 0 && (
+                <div className='earnings-chart'>
+                    <h2>Earnings History</h2>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={earningsHistory}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="date" tickFormatter={formatDate} />
+                            <YAxis tickFormatter={formatLargePriceValue} />
+
+                            <Tooltip />
+                            <Legend />
+
+                            <Bar dataKey="estimated_eps" name="Estimated EPS" fill='#8884d8' />
+                            <Bar dataKey="actual_eps" name="Actual EPS" fill='#82ca9d' />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            )}
         </div>
     )
 }

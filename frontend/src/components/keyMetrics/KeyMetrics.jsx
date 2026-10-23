@@ -7,7 +7,7 @@ import { apiBaseUrl } from '../../utils/apiConfig'
 import { ASSET_TYPES, isStockAssetType } from '../../constants/assetTypes'
 import { StarRating } from '../../helperFunctions/StarRating'
 
-const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHoldings, setFinishedMutualFundExpenseRatioSymbol, setFinishedKeyMetricsSymbol, setFinishedKeyMetricsDividend, isLoading, error }) => {
+const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHoldings, setFinishedMutualFundExpenseRatioSymbol, setFinishedKeyMetricsSymbol, setFinishedKeyMetricsDividend }) => {
 
     const [companyKeyMetrics, setCompanyKeyMetrics] = useState(null)
     const [companyMetricsLoading, setCompanyMetricsLoading] = useState(false)
@@ -15,7 +15,6 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
     const [fundDividendYield, setFundDividendYield] = useState(null)
     const [mutualFundExpenseRatio, setMutualFundExpenseRatio] = useState(null)
     const [mutualFundExpenseRatioLoading, setMutualFundExpenseRatioLoading] = useState(false)
-    const [mutualFundExpenseRatioSymbol, setMutualFundExpenseRatioSymbol] = useState("")
     const [mutualFundExpenseRatioError, setMutualFundExpenseRatioError] = useState("")
 
 
@@ -97,13 +96,12 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
     }, [symbol, assetType])
 
     useEffect(() => {
-        if (!symbol || (isStock)) return
+        if (!symbol || assetType !== ASSET_TYPES.ETP) return
 
         const controller = new AbortController()
 
         const getFundsDividendYield = async () => {
             try {
-                setCompanyMetricsLoading(true)
                 const response = await fetch(`${apiBaseUrl}/dividends/${symbol}`,
                     { signal: controller.signal }
                 )
@@ -141,7 +139,8 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
     const { assets, fees, risk_ratio, morningstar_overall_rating, morningstar_risk_rating, dividend_yield_pct } = mutualFundKeyMetricsData?.summary ?? {}
 
 
-    const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta } = metrics ?? {}
+    const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta, psTTM, pb } = metrics ?? {}
+
     const { net_assets, net_expense_ratio, portfolio_turnover } = fundMetrics ?? {}
 
     // The ETF provider serializes net assets as a numeric string.
@@ -150,11 +149,13 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
     // Stocks data.
     const keyMetricsStockData = [
         { label: "Market Cap: ", value: formatMarketCap(marketCapitalization, currency), prefix: getSymbol("$", marketCapitalization) },
-        { label: "P/E Ratio: ", value: formatMetrics(peTTM) },
-        { label: "Forward P/E: ", value: formatMetrics(forwardPE) },
         { label: "Dividend Yield: ", value: `${formatMetrics(currentDividendYieldTTM)}`, suffix: getSymbol("%", currentDividendYieldTTM) },
+        { label: "Price-to-Earnings Ratio: ", value: formatMetrics(peTTM) },
+        { label: "Forward Price-to-Earnings Ratio: ", value: formatMetrics(forwardPE) },
+        { label: "Price-to-Sales Ratio", value: psTTM != null ? psTTM?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A" },
+        { label: "Price-to-Book Ratio", value: pb != null ? pb?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A" },
+        { label: "Earnings Per Share (TTM): ", value: epsTTM != null ? epsTTM?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A", prefix: getSymbol("$", epsTTM) },
         { label: "Beta: ", value: formatMetrics(beta) },
-        { label: "Earnings Per Share: ", value: epsTTM != null ? epsTTM?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A", prefix: getSymbol("$", epsTTM) },
         {
             label: "52 Week High: ", value: formatLargePriceValue(week52High)
         },
@@ -189,8 +190,8 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
     ]
 
     const metricsToDisplay = isStock ? keyMetricsStockData : assetType === ASSET_TYPES.ETP ? keyMetricsEtf : keyMetricsMutualFund
-    const metricLoader = assetType === ASSET_TYPES.MUTUAL_FUND ? isLoading : companyMetricsLoading
-    const metricError = assetType === ASSET_TYPES.MUTUAL_FUND ? error : companyMetricsError
+    const metricLoader = assetType === ASSET_TYPES.MUTUAL_FUND ? mutualFundExpenseRatioLoading : companyMetricsLoading
+    const metricError = assetType === ASSET_TYPES.MUTUAL_FUND ? mutualFundExpenseRatioError : companyMetricsError
 
     if (metricLoader) {
         return (

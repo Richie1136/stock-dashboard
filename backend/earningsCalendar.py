@@ -1,12 +1,9 @@
 from flask import jsonify, Blueprint
-from dotenv import load_dotenv
-import os
-import requests
-from datetime import date, timedelta
+from datetime import date
+import yfinance as yf
+import pandas as pd
+import time
 
-load_dotenv()
-
-API_KEY= os.getenv('FINNHUB_API_KEY', "").strip()
 
 company_earnings_calendar_cache = {}
 
@@ -16,37 +13,66 @@ company_earnings_calendar_bp = Blueprint("company_earnings_calendar", __name__)
 def company_earnings_calendar(symbol):
     symbol = symbol.strip().upper()
     today = date.today()
-    thirtyDaysAfter = today + timedelta(days=30)
-
     if not symbol:
         return jsonify({"error": "A stock symbol is required"}), 400
 
-    headers = {
-        "X-Finnhub-Token": API_KEY
+    # Retrieve earnings dates from Yahoo Finance
+    try:
+        cached = company_earnings_calendar_cache.get(symbol)
+        if cached and time.time() - cached['timestamp'] < 3600:
+            print("COMPANY Earnings CACHE HIT:", symbol)
+            return jsonify(cached['data'])
+        ticker = yf.Ticker(symbol)
+        earnings_date = ticker.get_earnings_dates(limit=8)
+    except Exception as e:
+        print("Yahoo Finance earnings error:", e)
+        return jsonify({
+            "error": "Unable to retrieve company earnings"
+        }), 502
+    
+    if earnings_date is None or earnings_date.empty:
+        return jsonify({"upcoming": None, "history": []})
+    
+    # Sort earnings dates from oldest to newest
+
+    earnings_date = earnings_date.sort_index()
+    
+    # Find the next upcoming earnings
+    upcoming = None
+
+    for date_value, row in earnings_date.iterrows():
+        if date_value.date() > today:
+            upcoming = {
+                "date": date_value.strftime("%Y-%m-%d"),
+                "estimated_eps": (
+                    None if pd.isna(row['EPS Estimate'])
+                    else float(row['EPS Estimate'])
+                )
+            }
+            break
+    
+    # Existing historical earnings loop
+    history = []
+
+    for date_value, row in earnings_date.iterrows():
+        if date_value.date() >= today:
+            continue
+
+        history.append({
+            "date": date_value.strftime("%Y-%m-%d"),
+            "estimated_eps": None if pd.isna(row["EPS Estimate"]) else float(row["EPS Estimate"]),
+            "actual_eps": None if pd.isna(row['Reported EPS']) else float(row['Reported EPS']),
+            "surprise_percent": None if pd.isna(row['Surprise(%)']) else float(row['Surprise(%)'])
+        })
+
+    result = {
+        "upcoming": upcoming,
+        "history": history[-4:]
     }
 
-    # Query the next 30 days on a cache miss; cached results last for this process.
-    try:
-        if symbol in company_earnings_calendar_cache:
-            print("COMPANY Earnings CACHE HIT:", symbol)
-            return jsonify(company_earnings_calendar_cache[symbol])
-        company_earnings_calender_url = (f"https://finnhub.io/api/v1/calendar/earnings?from={today}&to={thirtyDaysAfter}&symbol={symbol}")
-        company_earnings_calender_response = requests.get(company_earnings_calender_url, headers=headers, timeout=20)
-    except requests.exceptions.Timeout:
-        return jsonify({
-            "error": "Finnhub company earnings request timed out"
-        }), 504
+    company_earnings_calendar_cache[symbol] = {
+        "data": result,
+        "timestamp": time.time()
+    }
 
-    if company_earnings_calender_response.status_code != 200:
-        return jsonify({
-            "error": "Finnhub request failed",
-            "status": company_earnings_calender_response.status_code,
-            "details": company_earnings_calender_response.text
-        }), company_earnings_calender_response.status_code
-
-    company_earnings_calender_data = company_earnings_calender_response.json()
-    if not company_earnings_calender_data:
-        return jsonify([])
-    company_earnings_calendar_cache[symbol] = company_earnings_calender_data
-
-    return jsonify(company_earnings_calender_data)
+    return jsonify(result)

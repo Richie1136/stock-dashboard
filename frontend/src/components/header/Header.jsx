@@ -20,7 +20,7 @@ const Header = ({ selectStock, symbol }) => {
         facebook: "meta"
     }
 
-    const searchSuggestions = (suggestions, resolvedQuery, query, normalizedQuery) => {
+    const searchSuggestions = (suggestions, resolvedQuery, normalizedQuery) => {
 
         // Prefer an exact ticker match, then fall back to the start of a company name.
         const exactSymbolMatch = suggestions.find((stock) => {
@@ -138,7 +138,7 @@ const Header = ({ selectStock, symbol }) => {
             // Enter/Search always performs an explicit search for the current input,
             // allowing the backend to use its fallback when needed.
             const result = await getStockSuggestions(resolvedQuery, signal, true)
-            searchSuggestions(result, resolvedQuery, query, normalizedQuery)
+            searchSuggestions(result, resolvedQuery, normalizedQuery)
         } catch (err) {
             console.error("Unable to search for stock:", err)
         }
