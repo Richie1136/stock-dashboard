@@ -28,6 +28,18 @@
     color: white;
     font-size: 26px;
     font-weight: 700;
+
+    &.positive {
+        color: #4ade80;
+    }
+
+    &.negative {
+        color: #f87171;
+    }
+
+    &.neutral {
+        color: gray;
+    }
 }
 
 .metrics-card h2 {

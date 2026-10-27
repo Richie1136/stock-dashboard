@@ -9,3 +9,29 @@
     column-gap: 20px;
     row-gap: 10px;
 }
+
+.earnings-tooltip {
+    background-color: #1f2937;
+    border: 1px solid #374151;
+    border-radius: 8px;
+    padding: 12px;
+    color: #fff;
+}
+
+.earnings-history-details {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 20px;
+    row-gap: 10px;
+    margin-top: 20px;
+}
+
+.recharts-legend-item {
+    display: inline-flex !important;
+    align-items: center;
+}
+
+.no-earnings-history {
+    margin-top: 40px;
+}
