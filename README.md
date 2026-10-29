@@ -1,6 +1,6 @@
 # Stock Dashboard
 
-A full-stack financial research dashboard built with React, JavaScript, Python, and Flask. The application allows users to search for stocks, ETFs, and mutual funds, explore company information, key financial metrics, and historical price charts, financial news, and earnings data.
+A full-stack financial research dashboard built with React, JavaScript, Python, and Flask. The application allows users to search for stocks, ETFs, and mutual funds, explore company information, key financial metrics, historical price charts, financial news, and earnings data.
 
 ## Tech Stack
 
@@ -44,6 +44,7 @@ A full-stack financial research dashboard built with React, JavaScript, Python, 
 - Interactive Historical Price Charts (5D, 10D, 1M, 3M, 100D)
 - Watchlist
 - Latest Company News
+- Earnings History
 - Upcoming Earnings
 - Backend API Caching
 - Error Handling
