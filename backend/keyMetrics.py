@@ -28,7 +28,6 @@ def key_metrics(symbol):
 
     key_metrics_symbol_url = (f"https://finnhub.io/api/v1/stock/metric?symbol={symbol}&metric=all")
     if symbol in key_metrics_cache:
-        print("FINNHUB KEY METRICS CACHE HIT:", symbol)
         return jsonify(key_metrics_cache[symbol])
     try:
         key_metrics_symbol_response = requests.get(key_metrics_symbol_url, headers=headers, timeout=10)
@@ -61,9 +60,6 @@ def key_metrics(symbol):
 
     return jsonify(metrics)
 
-
-
-
 fund_holdings_bp = Blueprint("fund_holdings", __name__)
 
 fund_holdings_cache = {}
@@ -76,9 +72,9 @@ def fund_holdings(symbol):
         return jsonify({"error": "A fund symbol is required"}), 400
         
     if symbol in fund_holdings_cache:
-        print("Fund HOLDINGS CACHE HIT:", symbol)
         return jsonify(fund_holdings_cache[symbol])
     try:
+
          # Get total holdings count from SEC
          fund_holdings_data = get_fund_holdings_by_symbol(symbol)
 
@@ -136,38 +132,30 @@ def fund_calculate_dividend_yield(symbol):
         return jsonify({"error": "A fund symbol is required"}), 400
         
     if symbol in fund_calculate_dividend_yield_cache:
-        print("BUSINESS QUANT DIVIDEND CACHE HIT:", symbol)
         return jsonify(fund_calculate_dividend_yield_cache[symbol])
 
-    fund_calculate_dividend_yield_url = (f"https://data.businessquant.com/dividends?ticker={symbol}&api_key={BUSINESS_QUANT_API_KEY}")
-
     try:
-        fund_calculate_dividend_yield_response = requests.get(fund_calculate_dividend_yield_url, timeout=10)
-    except requests.exceptions.ReadTimeout:
-            
-            return jsonify ({
-                "error": "Fund dividend yield provider timed out"
-            }), 504
-    
-    except requests.exceptions.ConnectionError:
-            return jsonify ({
-                "error": "Fund dividend yield provider unavailable"
-            }), 503
+        fund = Ticker(symbol)
+        yahoo_key_stats = fund.key_stats.get(symbol, {})
+        dividend_yield = yahoo_key_stats.get("yield")
 
-    if not fund_calculate_dividend_yield_response.ok:
+        if dividend_yield is None:
+            return jsonify({
+                "error": f"No Dividend yield found for {symbol}"
+            }), 404
+        # Yahoo returns a decimal
+
+        dividend_yield = dividend_yield * 100
+
+        fund_calculate_dividend_yield_cache[symbol] = dividend_yield
+
+        return jsonify(dividend_yield)
+    
+    except Exception as e:
         return jsonify({
-            "error": "Fund dividend data request failed",
-            "details": fund_calculate_dividend_yield_response.text
-
-        }), fund_calculate_dividend_yield_response.status_code 
-    
-    fund_calculate_dividend_yield_data = fund_calculate_dividend_yield_response.json()
-
-    dividend_yield = fund_calculate_dividend_yield_data['metadata'].get("divyield")
-
-    fund_calculate_dividend_yield_cache[symbol] = dividend_yield
-
-    return jsonify(dividend_yield)
+            "error": "Yahoo Finance dividend request failed",
+            "details": str(e)
+        }), 502
 
 
 

@@ -48,6 +48,7 @@ button {
   max-width: 1800px;
   margin: 0 auto;
   padding: 24px;
+  position: relative;
 }
 
 .card {
@@ -79,15 +80,15 @@ button {
 }
 
 .dashboard-content {
-  position: relative;
   flex: 1;
 }
 
 .dashboard-loader {
   position: absolute;
-  inset: 0;
+  top: 175px;
+  left: 50%;
+  transform: translateY(-50px);
   display: flex;
   justify-content: center;
   align-items: center;
-  transform: translateY(-60px);
 }

@@ -5,8 +5,6 @@ import requests
 from wait_for_alpha_vantage import wait_for_alpha_vantage
 from yahooquery import Ticker
 
-
-
 load_dotenv()
 
 API_KEY= os.getenv('FINNHUB_API_KEY', "").strip()
@@ -45,7 +43,7 @@ def company(symbol):
     if not profile_data:
         return jsonify({
             "error": f"No company profile found for {symbol}"
-        })
+        }), 404
     company_profile_cache[symbol] = profile_data
 
 
@@ -111,6 +109,15 @@ def fund_etf_profile(symbol):
             "portfolio_turnover": portfolio_turnover,
             "inception_date": inception_date
         }
+    try:
+        fund = Ticker(symbol)
+        price_data = fund.price.get(symbol, {})
+
+        profile_data["exchange"] = price_data.get("exchangeName")
+
+    except Exception as e:
+        print(f"Unable to retrieve exchange for {symbol}: {e}")
+        profile_data["exchange"] = None
     etf_profile_cache[symbol] = profile_data
     return jsonify(profile_data)
 

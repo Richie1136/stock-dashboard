@@ -69,10 +69,15 @@ function App() {
           { signal: controller.signal }
 
         )
+        const companyCarddata = await companyCardResponse.json()
+
         if (!companyCardResponse.ok) {
+          if (companyCarddata.error && companyCardResponse.status === 404) {
+            setCompany(companyCarddata)
+            return
+          }
           throw new Error(`Request failed with status ${companyCardResponse.status}`)
         }
-        const companyCarddata = await companyCardResponse.json()
         setCompany(companyCarddata)
       } catch (error) {
         if (error.name !== "AbortError") {
