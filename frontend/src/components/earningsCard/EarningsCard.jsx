@@ -109,16 +109,23 @@ const EarningsCard = ({ symbol }) => {
                             <Bar dataKey="actual_eps" name="Actual EPS" fill='#82ca9d' />
                         </BarChart>
                     </ResponsiveContainer>
-                    <div className='earnings-history-details'>
-                        <span className='metric-label'>Date:</span>
-                        <span className='metric-value'>{date ? formatDate(date) : "N/A"}</span>
-                        <span className='metric-label'>Estimated EPS:</span>
-                        <span className='metric-value'>{estimated_eps != null ? formatLargePriceValue(estimated_eps) : "N/A"}</span>
-                        <span className='metric-label'>Actual EPS: </span>
-                        <span className='metric-value'>{actual_eps != null ? formatLargePriceValue(actual_eps) : "N/A"}</span>
-                        <span className='metric-label'>Earnings Per Share vs. Expectations:</span>
-                        <span className={`metric-value ${surprise_percent > 0 ? "positive" : surprise_percent < 0 ? "negative" : "neutral"}`}>{surprise_percent != null ? surprise_percent.toFixed(2) + "%" : "N/A"}</span>
-                    </div>
+                    {selectedEarnings !== null ? (
+                        <div className='earnings-history-details'>
+                            <span className='metric-label'>Date:</span>
+                            <span className='metric-value'>{date ? formatDate(date) : "N/A"}</span>
+                            <span className='metric-label'>Estimated EPS:</span>
+                            <span className='metric-value'>{estimated_eps != null ? formatLargePriceValue(estimated_eps) : "N/A"}</span>
+                            <span className='metric-label'>Actual EPS: </span>
+                            <span className='metric-value'>{actual_eps != null ? formatLargePriceValue(actual_eps) : "N/A"}</span>
+                            <span className='metric-label'>Earnings Per Share vs. Expectations:</span>
+                            <span className={`metric-value ${surprise_percent > 0 ? "positive" : surprise_percent < 0 ? "negative" : "neutral"}`}>{surprise_percent != null ? surprise_percent.toFixed(2) + "%" : "N/A"}</span>
+                        </div>
+                    ) : (
+                        <>
+                            <h4>Earnings Details</h4>
+                            <p>Hover over an earnings period on the chart to view its details.</p>
+                        </>
+                    )}
                 </div>
             ) : (
                 <p className='no-earnings-history'>No historical earnings data available.</p>
