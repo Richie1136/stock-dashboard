@@ -6,7 +6,7 @@ import { CustomTooltip } from './customTooltip'
 import { formatLargePriceValue } from '../../helperFunctions/formatLargePriceValue'
 import { formatDate } from '../../helperFunctions'
 
-const PriceChart = ({ symbol, companyDailyPrice, isLoading, error }) => {
+const PriceChart = ({ symbol, companyDailyPrice, isLoading, error, metadata }) => {
 
     const [selectedTimeline, setSelectedTimeline] = useState("100D")
 
@@ -45,8 +45,10 @@ const PriceChart = ({ symbol, companyDailyPrice, isLoading, error }) => {
                 return lastOneMonth
             case "3M":
                 return lastThreeMonths
-            default:
+            case "ALL":
                 return chartData
+            default:
+                return chartData.slice(-100)
         }
     }
 
@@ -75,6 +77,18 @@ const PriceChart = ({ symbol, companyDailyPrice, isLoading, error }) => {
     const lastPrice = fundReturns.length > 0 ? fundReturns[fundReturns.length - 1].close : null
     const fundAmountReturned = fundReturns.length > 0 ? ((lastPrice - firstPrice) / firstPrice * 100) : null
 
+    const refreshedAt = metadata?.last_refreshed_at
+        ? new Date(metadata.last_refreshed_at).toLocaleString("en-US", {
+            timeZone: "America/New_York",
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+            timeZoneName: "short",
+        })
+        : null
+
     const returnedSymbol = fundAmountReturned > 0 ? "+" : ""
 
     const returnedPercentageValue = fundAmountReturned !== null ? `${returnedSymbol}${fundAmountReturned.toFixed(2)}%`
@@ -95,8 +109,16 @@ const PriceChart = ({ symbol, companyDailyPrice, isLoading, error }) => {
                     <button className={selectedTimeline === "1M" ? "active" : ''} onClick={() => setSelectedTimeline("1M")}>{"1M"}</button>
                     <button className={selectedTimeline === "3M" ? "active" : ''} onClick={() => setSelectedTimeline("3M")}>{"3M"}</button>
                     <button className={selectedTimeline === "100D" ? "active" : ''} onClick={() => setSelectedTimeline("100D")}>{"100D"}</button>
+                    <button className={selectedTimeline === "ALL" ? "active" : ''} onClick={() => setSelectedTimeline("ALL")}>All</button>
                 </div>
             </div>
+            {metadata && (
+                <p className="chart-freshness">
+                    Latest price date: {formatDate(metadata.latest_price_date)}
+                    {refreshedAt && <> · Last refreshed: {refreshedAt}</>}
+                    {metadata.from_cache && <> · Saved prices</>}
+                </p>
+            )}
             <ResponsiveContainer width="100%" height={400}>
                 <AreaChart data={fundReturns} margin={{ right: 12, top: 8, bottom: 18, left: 8 }}>
                     <defs>

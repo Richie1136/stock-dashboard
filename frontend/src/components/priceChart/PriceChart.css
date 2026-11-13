@@ -1,5 +1,7 @@
 .timeline-buttons {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 8px;
 }
 
@@ -46,4 +48,12 @@
 
 .neutral {
     color: gray;
+}
+
+.chart-freshness {
+    margin: 0 0 12px;
+    color: #9ca3af;
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
 }

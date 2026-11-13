@@ -84,7 +84,6 @@ def fund_etf_profile(symbol):
         print("ALPHA VANTAGE ETF PROFILE EMPTY, TRYING YAHOO:", symbol)
 
         fund = Ticker(symbol)
-        
         yahoo_key_stats = fund.key_stats.get(symbol, {})
         yahoo_profile = fund.fund_profile.get(symbol, {})
 
@@ -107,12 +106,13 @@ def fund_etf_profile(symbol):
             "net_assets": net_assets,
             "net_expense_ratio": expense_ratio,
             "portfolio_turnover": portfolio_turnover,
-            "inception_date": inception_date
+            "inception_date": inception_date,
         }
     try:
         fund = Ticker(symbol)
+        summary = fund.summary_detail.get(symbol)
         price_data = fund.price.get(symbol, {})
-
+        profile_data["trailing_pe"] = summary.get("trailingPE") if isinstance(summary, dict) else None
         profile_data["exchange"] = price_data.get("exchangeName")
 
     except Exception as e:

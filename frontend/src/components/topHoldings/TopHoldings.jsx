@@ -1,7 +1,7 @@
 import { ASSET_TYPES } from '../../constants/assetTypes'
 import './TopHoldings.css'
 
-const TopHoldings = ({ holdings, assetType, totalAmountOfHoldings }) => {
+const TopHoldings = ({ holdings, assetType, totalAmountOfHoldings, assetAllocation, symbol, fundName }) => {
 
     const holdingData = assetType === ASSET_TYPES.MUTUAL_FUND ? holdings?.data : holdings?.holdings ?? holdings?.data
     const topTenHoldings = holdingData?.slice(0, 10) ?? []
@@ -13,10 +13,12 @@ const TopHoldings = ({ holdings, assetType, totalAmountOfHoldings }) => {
         return total + percentage
     }, 0)
 
+    const hasTopHoldings = topTenHoldings.length > 0
+
     return (
         <div className='card top-holdings-card'>
-            <h2>Top Holdings ({totalAmountOfHoldings?.toLocaleString("en-US")})</h2>
-            <span className='total-portfolio-percentage'>{topTenPercentage.toFixed(2)}% of Total Portfolio</span>
+            <h2>{hasTopHoldings ? `Top Holdings (${totalAmountOfHoldings?.toLocaleString("en-US")})` : "Asset Allocation"}</h2>
+            <span className='total-portfolio-percentage'>{hasTopHoldings ? `${topTenPercentage.toFixed(2)}% of Total Portfolio` : `${symbol} · ${fundName}`}</span>
 
             <div className='top-holdings-list'>
                 {topTenHoldings.map((item, index) => {
@@ -43,6 +45,30 @@ const TopHoldings = ({ holdings, assetType, totalAmountOfHoldings }) => {
                     )
                 })}
             </div>
+
+            {!hasTopHoldings && (
+                <div className='allocation-list'>
+                    {[
+                        ["bonds", "Bonds"],
+                        ["stocks", "Stocks"],
+                        ["cash", "Cash"],
+                        ["other", "Other"],
+                        ["preferred", "Preferred"],
+                        ["convertible", "Convertible"],
+                    ].map(([key, label]) => {
+                        const value = assetAllocation?.[key]
+
+                        return (
+                            <div className='allocation-row' key={key}>
+                                <span>{label}</span>
+                                <span>
+                                    {Number.isFinite(value) ? `${value.toFixed(2)}%` : "N/A"}
+                                </span>
+                            </div>
+                        )
+                    })}
+                </div>
+            )}
         </div>
     )
 }

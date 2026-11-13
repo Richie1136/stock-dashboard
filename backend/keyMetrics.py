@@ -4,6 +4,7 @@ import os
 import requests
 from sec_fund_holdings import get_fund_holdings_by_symbol
 from yahooquery import Ticker
+import time
 
 load_dotenv()
 
@@ -74,15 +75,34 @@ def fund_holdings(symbol):
     if symbol in fund_holdings_cache:
         return jsonify(fund_holdings_cache[symbol])
     try:
-
+         start = time.perf_counter()
          # Get total holdings count from SEC
          fund_holdings_data = get_fund_holdings_by_symbol(symbol)
-
+         print("SEC HOLDING TIME:", time.perf_counter() - start)
+         start = time.perf_counter()
          # Get top 10 holdings from Yahoo Finance
          fund = Ticker(symbol)
          yahoo_data = fund.fund_holding_info.get(symbol, {})
+         print("YAHOO HOLDING TIME:", time.perf_counter() - start)
+
+         allocation_fields = {
+            "stocks": "stockPosition",
+            "bonds": "bondPosition",
+            "cash": "cashPosition",
+            "other": "otherPosition",
+            "preferred": "preferredPosition",
+            "convertible": "convertiblePosition",
+         }
+
+         asset_allocation = {
+             label: yahoo_data[field] * 100
+             if yahoo_data.get(field) is not None else None
+             for label, field in allocation_fields.items()
+         }
 
          yahoo_holdings = yahoo_data.get("holdings", [])
+
+         stock_position = yahoo_data.get("stockPosition")
 
          formatted_holdings = []
 
@@ -96,7 +116,9 @@ def fund_holdings(symbol):
          fund_holdings_data = {
               "data": formatted_holdings,
               "reporting_date": fund_holdings_data.get("reporting_date"),
-              "total_holdings": fund_holdings_data.get("total_holdings", 0)
+              "total_holdings": fund_holdings_data.get("total_holdings", 0),
+              "stock_allocation_pct": stock_position * 100 if stock_position is not None else None,
+              "asset_allocation": asset_allocation
          }
 
     except requests.exceptions.ReadTimeout:
@@ -109,10 +131,12 @@ def fund_holdings(symbol):
             "error": "Fund Holdings provider unavailable"
         }), 503
     
-    if not fund_holdings_data.get("data"):
+    has_allocation = any(
+        value is not None for value in asset_allocation.values()
+    )
+    if not fund_holdings_data.get("data") and not has_allocation:
         return jsonify({
-            "error": f"No fund holdings found for {symbol}",
-
+            "error": f"No portfolio data found for {symbol}",
         }), 404
     
     fund_holdings_cache[symbol] = fund_holdings_data
@@ -152,6 +176,7 @@ def fund_calculate_dividend_yield(symbol):
         return jsonify(dividend_yield)
     
     except Exception as e:
+        print("YAHOO DIVIDEND ERROR:", repr(e))
         return jsonify({
             "error": "Yahoo Finance dividend request failed",
             "details": str(e)

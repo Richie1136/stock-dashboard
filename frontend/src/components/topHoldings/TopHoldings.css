@@ -64,3 +64,14 @@
     flex-direction: column;
     gap: 10px;
 }
+
+.allocation-list {
+    display: grid;
+    gap: 20px;
+}
+
+.allocation-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+}

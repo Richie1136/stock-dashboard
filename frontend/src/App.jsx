@@ -29,6 +29,7 @@ function App() {
 
   const [priceLoading, setPriceLoading] = useState(false)
   const [priceError, setPriceError] = useState("")
+  const [priceMetadata, setPriceMetadata] = useState(null)
 
   const [finishedPriceChartSymbol, setFinishedPriceChartSymbol] = useState("")
   const [finishedKeyMetricsSymbol, setFinishedKeyMetricsSymbol] = useState("")
@@ -48,6 +49,9 @@ function App() {
   const [hasLoadedWatchlist, setHasLoadedWatchlist] = useState(false)
   const [company, setCompany] = useState(null)
   const [companyDailyPrice, setCompanyDailyPrice] = useState(null)
+
+  const [distributionYield, setDistributionYield] = useState(null)
+  const [distributionYieldLoading, setDistributionYieldLoading] = useState(false)
 
 
   const isStock = isStockAssetType(assetType)
@@ -132,6 +136,47 @@ function App() {
     }
     fetchEtfProfile()
 
+    return () => {
+      controller.abort()
+    }
+  }, [symbol, assetType])
+
+  useEffect(() => {
+    if (!symbol || (assetType !== ASSET_TYPES.ETP && assetType !== ASSET_TYPES.MUTUAL_FUND)) {
+      setDistributionYield(null)
+      return
+    }
+
+    const controller = new AbortController()
+
+    const fetchDistributionYield = async () => {
+      try {
+        setDistributionYield(null)
+        setDistributionYieldLoading(true)
+        const FetchEtfDistributionYieldResponse = await fetch(`${apiBaseUrl}/distribution-yield/${symbol}`,
+          { signal: controller.signal }
+        )
+        if (!FetchEtfDistributionYieldResponse.ok) {
+          throw new Error(
+            `Distribution yield request failed: ${FetchEtfDistributionYieldResponse.status}`
+          )
+        }
+        const data = await FetchEtfDistributionYieldResponse.json()
+        if (!controller.signal.aborted) {
+          setDistributionYield(data.distribution_yield)
+        }
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          console.error("Distribution yield error:", err)
+          setDistributionYield(null)
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setDistributionYieldLoading(false)
+        }
+      }
+    }
+    fetchDistributionYield()
     return () => {
       controller.abort()
     }
@@ -236,7 +281,8 @@ function App() {
       try {
         setPriceError("")
         setPriceLoading(true)
-        const response = await fetch(`${apiBaseUrl}/price-history/${symbol}`, {
+        setPriceMetadata(null)
+        const response = await fetch(`${apiBaseUrl}/price-history/${symbol}?include_metadata=true`, {
           signal: controller.signal
         })
 
@@ -250,10 +296,12 @@ function App() {
           throw new Error(`Request failed with status ${response.status}`)
         }
         const data = await response.json()
-        setCompanyDailyPrice(data)
+        setCompanyDailyPrice(Array.isArray(data) ? data : data.data)
+        setPriceMetadata(Array.isArray(data) ? null : data.metadata)
       } catch (err) {
         if (err.name !== 'AbortError') {
           setCompanyDailyPrice(null)
+          setPriceMetadata(null)
           setPriceError("Unable to load chart")
           console.error(err)
         }
@@ -319,6 +367,10 @@ function App() {
 
   const totalAmountOfHoldings = fundHoldings?.total_holdings
 
+  const stockAllocationPercentage = fundHoldings?.stock_allocation_pct
+
+  const assetAllocation = fundHoldings?.asset_allocation
+
   return (
     <section className="app">
       <Header selectStock={selectStock} symbol={symbol} />
@@ -333,11 +385,11 @@ function App() {
           <main className={`dashboard-main ${dashboardLoading ? "dashboard-main-hidden" : ""}`}>
             <div className='top-row'>
               <CompanyCard isItemInWatchlist={isItemInWatchlist} company={company} isLoading={companyLoader} error={errorLoader} updateWatchList={updateFundWatchList} symbol={symbol} assetType={assetType} fundName={fundName} etfProfile={etfProfile} mutualFundProfile={mutualFundProfile} />
-              <KeyMetrics setFinishedKeyMetricsDividend={setFinishedKeyMetricsDividend} setFinishedMutualFundExpenseRatioSymbol={setFinishedMutualFundExpenseRatioSymbol} setFinishedKeyMetricsSymbol={setFinishedKeyMetricsSymbol} totalAmountOfHoldings={totalAmountOfHoldings} currency={company?.currency} symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
+              <KeyMetrics stockAllocationPercentage={stockAllocationPercentage} distributionYieldLoading={distributionYieldLoading} distributionYield={distributionYield} setFinishedKeyMetricsDividend={setFinishedKeyMetricsDividend} setFinishedMutualFundExpenseRatioSymbol={setFinishedMutualFundExpenseRatioSymbol} setFinishedKeyMetricsSymbol={setFinishedKeyMetricsSymbol} totalAmountOfHoldings={totalAmountOfHoldings} currency={company?.currency} symbol={symbol} assetType={assetType} etfProfile={etfProfile} />
             </div>
             <div className='bottom-row'>
-              <PriceChart isLoading={priceLoading} error={priceError} setCompanyDailyPrice={setCompanyDailyPrice} companyDailyPrice={companyDailyPrice} symbol={symbol} assetType={assetType} />
-              {assetType === ASSET_TYPES.MUTUAL_FUND || assetType === ASSET_TYPES.ETP ? <TopHoldings symbol={symbol} holdings={assetTypeHoldings} assetType={assetType} totalAmountOfHoldings={totalAmountOfHoldings} /> : <NewsCard symbol={symbol} setFinishedNewsSymbol={setFinishedNewsSymbol} />}
+              <PriceChart metadata={priceMetadata} isLoading={priceLoading} error={priceError} setCompanyDailyPrice={setCompanyDailyPrice} companyDailyPrice={companyDailyPrice} symbol={symbol} assetType={assetType} />
+              {assetType === ASSET_TYPES.MUTUAL_FUND || assetType === ASSET_TYPES.ETP ? <TopHoldings symbol={symbol} fundName={fundName} assetAllocation={assetAllocation} holdings={assetTypeHoldings} assetType={assetType} totalAmountOfHoldings={totalAmountOfHoldings} /> : <NewsCard symbol={symbol} setFinishedNewsSymbol={setFinishedNewsSymbol} />}
             </div>
             {symbol && isStock && <EarningsCard symbol={symbol} />}
             <AISummaryCard />

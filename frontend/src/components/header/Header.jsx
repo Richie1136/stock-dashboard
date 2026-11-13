@@ -12,6 +12,7 @@ const Header = ({ selectStock, symbol }) => {
     const [suggestionsLoading, setSuggestionsLoading] = useState(false)
     const inputClickAway = useRef(null)
 
+    // Track the current request so an older search cannot replace its results.
     const searchControllerRef = useRef(null)
 
     // Map common former company names to terms supported by the search API.
@@ -33,6 +34,7 @@ const Header = ({ selectStock, symbol }) => {
 
         const selectedStock = exactSymbolMatch || companyNameMatch
 
+        // Preserve the input so the user can edit a search that has no matching result.
         if (!selectedStock?.symbol) {
             setSearchError("No results found for this search")
             return
@@ -59,25 +61,21 @@ const Header = ({ selectStock, symbol }) => {
 
             // Filter supported asset types and exclude dotted tickers except Berkshire share classes.
             const supportedAssets = data?.result?.filter((stock) => {
-                if (!isSupportedAssetType(stock.type)) {
-                    console.log("Unknown Finnhub type:", stock.type, stock)
-                }
                 return isSupportedAssetType(stock.type) &&
                     (!stock.displaySymbol.includes(".") || stock.displaySymbol === "BRK.A" || stock.displaySymbol === "BRK.B")
             }) || []
-            console.log("Supported assets:", supportedAssets)
             return supportedAssets
         } catch (error) {
             if (error.name !== "AbortError") {
-                console.error("Error fetching company data:", error)
-                setSearchStock("")
-                setSuggestions([])
+                console.error("Error fetching search suggestions:", error)
             }
-            return []
+            // Let callers show a request failure separately from an empty successful result.
+            throw error
         }
     }
 
     useEffect(() => {
+        // Cleanup marks this effect outdated or no longer needed when the input changes or the component unmounts.
         let ignore = false
         searchControllerRef.current = new AbortController()
         const controller = searchControllerRef.current
@@ -93,15 +91,26 @@ const Header = ({ selectStock, symbol }) => {
         setSuggestionsLoading(true)
 
         const loadStockSuggestions = async () => {
-
             const normalizedQuery = query.toLowerCase()
             const resolvedQuery = stockAliases[normalizedQuery] || normalizedQuery
 
-            const stockSuggestions = await getStockSuggestions(resolvedQuery, signal)
-            if (!ignore) {
-                setSuggestions(stockSuggestions)
-                setShowSuggestions(true)
-                setSuggestionsLoading(false)
+            try {
+                const stockSuggestions = await getStockSuggestions(resolvedQuery, signal)
+                if (!ignore && !signal.aborted) {
+                    setSuggestions(stockSuggestions)
+                    setShowSuggestions(true)
+                }
+            } catch (error) {
+                // Cancelled searches should not clear suggestions or display an error.
+                if (ignore || signal.aborted) return
+                setSuggestions([])
+                setShowSuggestions(false)
+                setSearchError("Unable to search. Please try again.")
+            } finally {
+                // Only the current request can stop the loading indicator.
+                if (!signal.aborted && searchControllerRef.current === controller) {
+                    setSuggestionsLoading(false)
+                }
             }
         }
         // Debounce requests so typing does not trigger a search on every keystroke.
@@ -126,7 +135,9 @@ const Header = ({ selectStock, symbol }) => {
         const normalizedQuery = query.toLowerCase()
 
         const resolvedQuery = stockAliases[normalizedQuery] || normalizedQuery
-
+        setSearchError("")
+        setSuggestionsLoading(true)
+        // An explicit search replaces any pending suggestion or earlier explicit request.
         if (searchControllerRef.current) {
             searchControllerRef.current.abort()
         }
@@ -138,9 +149,18 @@ const Header = ({ selectStock, symbol }) => {
             // Enter/Search always performs an explicit search for the current input,
             // allowing the backend to use its fallback when needed.
             const result = await getStockSuggestions(resolvedQuery, signal, true)
+            // The user may have changed the input or started another search while awaiting results.
+            if (signal.aborted || searchControllerRef.current !== controller) return
             searchSuggestions(result, resolvedQuery, normalizedQuery)
         } catch (err) {
-            console.error("Unable to search for stock:", err)
+            if (signal.aborted || searchControllerRef.current !== controller) return
+            setSuggestions([])
+            setShowSuggestions(false)
+            setSearchError("Unable to search. Please try again.")
+        } finally {
+            if (!signal.aborted && searchControllerRef.current === controller) {
+                setSuggestionsLoading(false)
+            }
         }
     }
 
@@ -195,7 +215,7 @@ const Header = ({ selectStock, symbol }) => {
             <h1>Stock Dashboard</h1>
             <div className='search-bar-container'>
                 <div className="search-input-container" ref={inputClickAway}>
-                    <input className={searchError ? "error" : ""} value={searchStock} placeholder="Search for Stock" onChange={handleInputChange}
+                    <input className={searchError ? "error" : ""} value={searchStock} placeholder="Search for stocks, ETFs, mutual funds..." onChange={handleInputChange}
                         onKeyDown={(e) => {
                             if (e.key === 'Enter') handleSearch()
                         }}

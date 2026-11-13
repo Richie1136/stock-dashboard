@@ -7,7 +7,7 @@ import { apiBaseUrl } from '../../utils/apiConfig'
 import { ASSET_TYPES, isStockAssetType } from '../../constants/assetTypes'
 import { StarRating } from '../../helperFunctions/StarRating'
 
-const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHoldings, setFinishedMutualFundExpenseRatioSymbol, setFinishedKeyMetricsSymbol, setFinishedKeyMetricsDividend }) => {
+const KeyMetrics = ({ symbol, assetType, etfProfile, distributionYieldLoading, stockAllocationPercentage, distributionYield, currency, totalAmountOfHoldings, setFinishedMutualFundExpenseRatioSymbol, setFinishedKeyMetricsSymbol, setFinishedKeyMetricsDividend }) => {
 
     const [companyKeyMetrics, setCompanyKeyMetrics] = useState(null)
     const [companyMetricsLoading, setCompanyMetricsLoading] = useState(false)
@@ -16,7 +16,6 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
     const [mutualFundExpenseRatio, setMutualFundExpenseRatio] = useState(null)
     const [mutualFundExpenseRatioLoading, setMutualFundExpenseRatioLoading] = useState(false)
     const [mutualFundExpenseRatioError, setMutualFundExpenseRatioError] = useState("")
-
 
     const isStock = isStockAssetType(assetType)
 
@@ -79,7 +78,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
             } catch (err) {
                 if (err.name !== "AbortError") {
                     console.error(err)
-                    setMutualFundExpenseRatioError("Unable to load Muutal Fund expense ratio data")
+                    setMutualFundExpenseRatioError("Unable to load Mutual Fund key metrics data")
                 }
             } finally {
                 if (!controller.signal.aborted) {
@@ -141,7 +140,7 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
 
     const { ['52WeekHigh']: week52High, ['52WeekLow']: week52Low, marketCapitalization, peTTM, forwardPE, epsTTM, currentDividendYieldTTM, beta, psTTM, pb } = metrics ?? {}
 
-    const { net_assets, net_expense_ratio, portfolio_turnover } = fundMetrics ?? {}
+    const { net_assets, net_expense_ratio, portfolio_turnover, trailing_pe } = fundMetrics ?? {}
 
     // The ETF provider serializes net assets as a numeric string.
     const convertNetAssetToNumber = net_assets !== undefined && net_assets !== null && assetType === ASSET_TYPES.ETP ? Number(net_assets) : assetType === ASSET_TYPES.MUTUAL_FUND ? Number(assets?.net_assets_usd) : "N/A"
@@ -166,21 +165,24 @@ const KeyMetrics = ({ symbol, assetType, etfProfile, currency, totalAmountOfHold
 
     const keyMetricsMutualFund = [
         { label: "Dividend Yield: ", value: dividend_yield_pct !== null ? dividend_yield_pct?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A", suffix: getSymbol("%", dividend_yield_pct) },
+        { label: "Distribution Yield (TTM): ", value: distributionYieldLoading ? "Loading..." : distributionYield === null || Number.isNaN(distributionYield) ? "N/A" : distributionYield?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), suffix: !distributionYieldLoading && distributionYield != null && Number.isFinite(distributionYield) ? "%" : '' },
         { label: "Beta: ", value: formatMetrics(risk_ratio?.beta_5y) },
+        { label: "Stock Allocation: ", value: Number.isFinite(stockAllocationPercentage) ? stockAllocationPercentage.toFixed(2) : "N/A", suffix: getSymbol("%", stockAllocationPercentage) },
         { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber) },
         { label: "Expense Ratio: ", value: fees?.net_expense_ratio_pct != null ? fees?.net_expense_ratio_pct?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A", suffix: getSymbol("%", fees?.net_expense_ratio_pct) },
         { label: "Holdings: ", value: totalAmountOfHoldings != null ? totalAmountOfHoldings.toLocaleString("en-US") : "N/A" },
         { label: "Portfolio Turnover: ", value: `${formatMetrics(fees?.portfolio_turnover_pct)}`, suffix: getSymbol("%", fees?.portfolio_turnover_pct) },
         { label: "Morningstar Overall Rating", value: <StarRating rating={morningstar_overall_rating} /> },
         { label: "Morningstar Risk Rating", value: <StarRating rating={morningstar_risk_rating} /> }
-
     ]
 
     // ETF Data
 
     const keyMetricsEtf = [
         { label: "Dividend Yield: ", value: fundDividendYield === null || Number.isNaN(fundDividendYield) ? "N/A" : `${(fundDividendYield.toFixed(2))}`, suffix: getSymbol("%", fundDividendYield) },
+        { label: "Distribution Yield (TTM): ", value: distributionYieldLoading ? "Loading..." : distributionYield === null || Number.isNaN(distributionYield) ? "N/A" : distributionYield?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), suffix: !distributionYieldLoading && distributionYield != null && Number.isFinite(distributionYield) ? "%" : '' },
         { label: "Beta: ", value: formatMetrics(beta) },
+        { label: "Trailing P/E Ratio: ", value: Number.isFinite(trailing_pe) ? trailing_pe?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "N/A" },
         { label: "Net Assets: ", value: formatNetAssets(convertNetAssetToNumber) },
         { label: "Expense Ratio: ", value: `${formatMetrics(convertDecimalToPercentage(net_expense_ratio))}`, suffix: getSymbol("%", net_expense_ratio) },
         { label: "52 Week High: ", value: formatMetrics(week52High), prefix: getSymbol("$", week52High) },
