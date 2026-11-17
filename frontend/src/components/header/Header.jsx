@@ -116,7 +116,7 @@ const Header = ({ selectStock, symbol }) => {
         // Debounce requests so typing does not trigger a search on every keystroke.
         const timeoutId = setTimeout(() => {
             loadStockSuggestions()
-        }, 400)
+        }, 250)
 
         return () => {
             ignore = true

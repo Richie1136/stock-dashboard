@@ -8,7 +8,7 @@ import { formatDate } from '../../helperFunctions'
 
 const PriceChart = ({ symbol, companyDailyPrice, isLoading, error, metadata }) => {
 
-    const [selectedTimeline, setSelectedTimeline] = useState("100D")
+    const [selectedTimeline, setSelectedTimeline] = useState("1Y")
 
     // Extract closing prices and sort oldest first for timeline slices and return calculations.
     const dailyPrices = companyDailyPrice ?? {}
@@ -29,27 +29,50 @@ const PriceChart = ({ symbol, companyDailyPrice, isLoading, error, metadata }) =
         </div>
     }
 
-    // Approximate month ranges with trading days rather than calendar days.
+    // 5D uses the latest five trading sessions in the returned data.
     const last5Day = chartData.slice(-5)
-    const last10Day = chartData.slice(-10)
-    const lastOneMonth = chartData.slice(-22)
-    const lastThreeMonths = chartData.slice(-63)
 
     const getSelectedTimeline = (selectedTimeline) => {
-        switch (selectedTimeline) {
-            case "10D":
-                return last10Day
-            case "5D":
-                return last5Day
-            case "1M":
-                return lastOneMonth
-            case "3M":
-                return lastThreeMonths
-            case "ALL":
-                return chartData
-            default:
-                return chartData.slice(-100)
+        // All includes every returned price, so newer funds may have less history.
+        if (selectedTimeline === "ALL") return chartData
+        if (selectedTimeline === "5D") return last5Day
+
+        // Use today's date in the browser's timezone as the calendar-range cutoff.
+        // Midnight includes a price that falls exactly on the starting date.
+
+        const startDate = new Date()
+        startDate.setHours(0, 0, 0, 0)
+
+        if (selectedTimeline === "YTD") {
+            // January is month 0. YTD starts on January 1 of the current year.
+            startDate.setMonth(0, 1)
+        } else {
+            const monthsBack = {
+                "1M": 1,
+                "3M": 3,
+                "6M": 6,
+                "1Y": 12,
+                "5Y": 60
+            }
+
+            const originalDay = startDate.getDate()
+
+            // Start on day 1 to avoid overflowing shorter months.
+
+            startDate.setDate(1)
+            startDate.setMonth(startDate.getMonth() - (monthsBack[selectedTimeline] ?? 12))
+
+            const lastDayOfMonth = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate()
+
+            // Clamp dates such as March 31 to the last valid day of the target month.
+            startDate.setDate(Math.min(originalDay, lastDayOfMonth))
         }
+
+        return chartData.filter(({ date }) => {
+            // Parse each price at local midnight so it uses the same timezone as the cutoff.
+            const priceDate = new Date(`${date.slice(0, 10)}T00:00:00`)
+            return priceDate >= startDate
+        })
     }
 
     if (isLoading) {
@@ -77,6 +100,10 @@ const PriceChart = ({ symbol, companyDailyPrice, isLoading, error, metadata }) =
     const lastPrice = fundReturns.length > 0 ? fundReturns[fundReturns.length - 1].close : null
     const fundAmountReturned = fundReturns.length > 0 ? ((lastPrice - firstPrice) / firstPrice * 100) : null
 
+    const convertfundAmountReturnedToString = fundAmountReturned?.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+
+    // The latest price date identifies the trading session. This timestamp identifies the refresh.
+    // Display the stored UTC refresh time in Eastern time.
     const refreshedAt = metadata?.last_refreshed_at
         ? new Date(metadata.last_refreshed_at).toLocaleString("en-US", {
             timeZone: "America/New_York",
@@ -91,7 +118,7 @@ const PriceChart = ({ symbol, companyDailyPrice, isLoading, error, metadata }) =
 
     const returnedSymbol = fundAmountReturned > 0 ? "+" : ""
 
-    const returnedPercentageValue = fundAmountReturned !== null ? `${returnedSymbol}${fundAmountReturned.toFixed(2)}%`
+    const returnedPercentageValue = fundAmountReturned !== null ? `${returnedSymbol}${convertfundAmountReturnedToString}%`
         : null
 
     return (
@@ -105,10 +132,12 @@ const PriceChart = ({ symbol, companyDailyPrice, isLoading, error, metadata }) =
                 </div>
                 <div className='timeline-buttons'>
                     <button className={selectedTimeline === "5D" ? "active" : ''} onClick={() => setSelectedTimeline("5D")}>{"5D"}</button>
-                    <button className={selectedTimeline === "10D" ? "active" : ''} onClick={() => setSelectedTimeline("10D")}>{"10D"}</button>
                     <button className={selectedTimeline === "1M" ? "active" : ''} onClick={() => setSelectedTimeline("1M")}>{"1M"}</button>
                     <button className={selectedTimeline === "3M" ? "active" : ''} onClick={() => setSelectedTimeline("3M")}>{"3M"}</button>
-                    <button className={selectedTimeline === "100D" ? "active" : ''} onClick={() => setSelectedTimeline("100D")}>{"100D"}</button>
+                    <button className={selectedTimeline === "6M" ? "active" : ''} onClick={() => setSelectedTimeline("6M")}>{"6M"}</button>
+                    <button className={selectedTimeline === "YTD" ? "active" : ''} onClick={() => setSelectedTimeline("YTD")}>{"YTD"}</button>
+                    <button className={selectedTimeline === "1Y" ? "active" : ''} onClick={() => setSelectedTimeline("1Y")}>{"1Y"}</button>
+                    <button className={selectedTimeline === "5Y" ? "active" : ''} onClick={() => setSelectedTimeline("5Y")}>{"5Y"}</button>
                     <button className={selectedTimeline === "ALL" ? "active" : ''} onClick={() => setSelectedTimeline("ALL")}>All</button>
                 </div>
             </div>
@@ -119,6 +148,7 @@ const PriceChart = ({ symbol, companyDailyPrice, isLoading, error, metadata }) =
                     {metadata.from_cache && <> · Saved prices</>}
                 </p>
             )}
+            {metadata?.warning && <p>Unable to refresh. Showing previously saved prices.</p>}
             <ResponsiveContainer width="100%" height={400}>
                 <AreaChart data={fundReturns} margin={{ right: 12, top: 8, bottom: 18, left: 8 }}>
                     <defs>

@@ -23,7 +23,7 @@ const TopHoldings = ({ holdings, assetType, totalAmountOfHoldings, assetAllocati
             <div className='top-holdings-list'>
                 {topTenHoldings.map((item, index) => {
                     const ticker = assetType === ASSET_TYPES.MUTUAL_FUND ? item.issuer_ticker : item.symbol ?? item.issuer_ticker
-                    const name = assetType === ASSET_TYPES.MUTUAL_FUND ? item.issuer_name : item.description
+                    const name = item.issuer_name ?? item.description
                     const weight = assetType === ASSET_TYPES.MUTUAL_FUND ? item.weight_pct : item.weight ?? item.weight_pct
                     const percentage = item.weight != null && assetType === ASSET_TYPES.ETP ? Number(weight) * 100 : Number(weight)
                     const rank = index + 1

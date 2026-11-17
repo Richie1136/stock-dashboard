@@ -98,7 +98,7 @@ def fetch_business_quant_history(symbol, latest_date):
     return records
 
 
-def price_history_response(history, updated_at, from_cache, include_metadata):
+def price_history_response(history, updated_at, from_cache, include_metadata, warning=False):
     if not include_metadata:
         return history
     refreshed_at = datetime.fromisoformat(updated_at).replace(tzinfo=timezone.utc)
@@ -108,11 +108,12 @@ def price_history_response(history, updated_at, from_cache, include_metadata):
             "latest_price_date": max(record["date"][:10] for record in history),
             "last_refreshed_at": refreshed_at.isoformat(),
             "from_cache": from_cache,
+            "warning": warning
         },
     }
 
 
-def get_price_history(symbol, *, force_refresh=False, include_metadata=False):
+def get_price_history(symbol, force_refresh=False, include_metadata=False):
     symbol = symbol.strip().upper()
     # Both providers use hyphens for Berkshire share classes.
     symbol = {"BRK.A": "BRK-A", "BRK.B": "BRK-B"}.get(symbol, symbol)
@@ -125,31 +126,52 @@ def get_price_history(symbol, *, force_refresh=False, include_metadata=False):
     cache_is_fresh = cached_history and not is_cache_stale(
         cached_row["updated_at"], cached_history
     )
-    # Legacy rows can still serve as fallback after Yahoo has been tried.
+    # Skip the provider request when cached prices are fresh, unless a refresh was requested.
+    # Older cache rows without a source still try Yahoo to upgrade their one-year history.
     if cache_is_fresh and cached_row["source"] and not force_refresh:
         return price_history_response(
             cached_history, cached_row["updated_at"], True, include_metadata
         )
 
+    # Exclude today's price before 5 PM Eastern and on weekends.
     now_et = datetime.now(EASTERN)
     latest_date = now_et.date()
     if now_et.weekday() >= 5 or now_et.time() < time(17):
         latest_date -= timedelta(days=1)
     latest_date = latest_date.isoformat()
 
+    # Yahoo is the primary provider and requests up to ten years of history.
     try:
         price_history = fetch_yahoo_history(symbol, latest_date)
         source = "yahoo"
     except Exception as error:
         # yahooquery can raise different transport and parsing errors across releases.
         print(f"Yahoo Finance price history failed for {symbol}: {type(error).__name__}")
+        # Fresh saved prices are enough if Yahoo is unavailable.
         if cache_is_fresh:
             return price_history_response(
                     cached_history, cached_row["updated_at"], True, include_metadata
                 )
-        price_history = fetch_business_quant_history(symbol, latest_date)
-        source = "businessquant"
+        # Try BusinessQuant when Yahoo fails and the saved prices need updating.
+        try:
+            price_history = fetch_business_quant_history(symbol, latest_date)
+            source = "businessquant"
+        except (RuntimeError, ValueError, requests.RequestException):
+            # Both providers failed. Return saved prices with their original refresh timestamp.
+            if cached_history:
+                return price_history_response(
+                    cached_history,
+                    cached_row["updated_at"],
+                    True,
+                    include_metadata,
+                    warning=True
+                )
+            # With no saved prices, let the API route return its existing error response.
+            raise
 
+
+    # Save fetched prices only after a provider request succeeds.
+    # The SQL guard protects a concurrent Yahoo update from an older fallback request.
     with get_db_connection() as conn:
         conn.execute(
             """
@@ -172,6 +194,7 @@ WHERE excluded.source = 'yahoo'
         updated_at = conn.execute(
             "SELECT updated_at FROM price_history_cache WHERE symbol = ?", (symbol,)
         ).fetchone()["updated_at"]
+    # include_metadata adds the dates and cache flag used by the chart subtitle.
     return price_history_response(price_history, updated_at, False, include_metadata)
 
 
