@@ -110,6 +110,16 @@ def fund_etf_profile(symbol):
         }
     try:
         fund = Ticker(symbol)
+        # Fill a missing Alpha Vantage expense ratio using Yahoo.
+        if profile_data.get("net_expense_ratio") in (None, "", "n/a", "N/A"):
+            yahoo_profile = fund.fund_profile.get(symbol, {})
+            fees = yahoo_profile.get("feesExpensesInvestment", {})
+            expense_ratio = fees.get("netExpRatio")
+
+            if expense_ratio is None:
+                expense_ratio = fees.get("annualReportExpenseRatio")
+
+            profile_data['net_expense_ratio'] = expense_ratio
         summary = fund.summary_detail.get(symbol)
         price_data = fund.price.get(symbol, {})
         profile_data["trailing_pe"] = summary.get("trailingPE") if isinstance(summary, dict) else None

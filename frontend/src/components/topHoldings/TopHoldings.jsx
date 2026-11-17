@@ -17,7 +17,7 @@ const TopHoldings = ({ holdings, assetType, totalAmountOfHoldings, assetAllocati
 
     return (
         <div className='card top-holdings-card'>
-            <h2>{hasTopHoldings ? `Top Holdings (${totalAmountOfHoldings?.toLocaleString("en-US")})` : "Asset Allocation"}</h2>
+            <h2>{hasTopHoldings ? `Top Holdings ${totalAmountOfHoldings !== null ? `(${totalAmountOfHoldings?.toLocaleString("en-US")})` : ""}` : "Asset Allocation"}</h2>
             <span className='total-portfolio-percentage'>{hasTopHoldings ? `${topTenPercentage.toFixed(2)}% of Total Portfolio` : `${symbol} · ${fundName}`}</span>
 
             <div className='top-holdings-list'>

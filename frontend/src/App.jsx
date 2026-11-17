@@ -365,7 +365,12 @@ function App() {
 
   const assetTypeHoldings = fundHoldings
 
-  const totalAmountOfHoldings = fundHoldings?.total_holdings
+  // Use the ETF provider's holdings list when the SEC count is unavailable
+
+  const etfHoldingsCount = Array.isArray(etfProfile?.holdings) && etfProfile.holdings.length > 0
+    ? etfProfile.holdings.length : null
+
+  const totalAmountOfHoldings = fundHoldings?.total_holdings ?? (assetType === ASSET_TYPES.ETP ? etfHoldingsCount : null)
 
   const stockAllocationPercentage = fundHoldings?.stock_allocation_pct
 
